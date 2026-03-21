@@ -78,7 +78,7 @@ export default function Login() {
                 <input
                   type="email"
                   required
-                  placeholder="admin@contreburger.com"
+                  placeholder="usuario@correo.com"
                   className="w-full bg-stone-900/50 border border-stone-700 text-white rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all placeholder:text-stone-600"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
