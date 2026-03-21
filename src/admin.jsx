@@ -538,10 +538,22 @@ export default function Admin() {
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/3">
                   <label className="block text-sm font-bold text-stone-700 mb-2">Imagen</label>
-                  <div className="aspect-square rounded-2xl bg-stone-100 border-2 border-dashed border-stone-300 flex flex-col items-center justify-center overflow-hidden relative group hover:border-amber-500 transition-colors">
-                    {currentProduct.image ? <img src={currentProduct.image} className="w-full h-full object-cover" alt="Preview" /> : <div className="text-stone-400 text-center p-4"><Icon.Upload /><span className="text-xs block mt-2">Subir Foto</span></div>}
+                  <div className="aspect-square rounded-2xl bg-stone-100 border-2 border-dashed border-stone-300 flex flex-col items-center justify-center overflow-hidden relative group hover:border-amber-500 transition-colors mb-3">
+                    {currentProduct.image
+                      ? <img src={currentProduct.image} className="w-full h-full object-cover" alt="Preview" onError={(e) => { e.target.style.display="none"; }} />
+                      : <div className="text-stone-400 text-center p-4"><Icon.Upload /><span className="text-xs block mt-2">Subir archivo</span></div>}
                     <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"><span className="text-white text-xs font-bold">Cambiar</span></div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-stone-500 mb-1">O pegá un link de imagen</label>
+                    <input
+                      type="text"
+                      placeholder="https://..."
+                      className="w-full p-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none"
+                      value={currentProduct.image && !fileToUpload ? currentProduct.image : ""}
+                      onChange={(e) => { setFileToUpload(null); setCurrentProduct({ ...currentProduct, image: e.target.value }); }}
+                    />
                   </div>
                 </div>
                 <div className="w-full md:w-2/3 space-y-4">
