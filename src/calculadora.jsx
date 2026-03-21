@@ -256,7 +256,7 @@ const initialSales = [
     { id: 3, date: '2023-10-22', amount: 180000 },
 ];
 const defaultCategories = ['Alimentos', 'Bebidas', 'Papelería', 'Limpieza'];
-const unitOptions = ['u', 'kg', 'g', 'l', 'ml', 'paq', 'docena'];
+const unitOptions = ['u', 'kg', 'g', 'porcion', 'l', 'ml', 'paq', 'docena'];
 
 // --- Vistas ---
 
