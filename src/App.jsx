@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+imp ort React, { useState, useEffect, useMemo, useRef } from 'react';
 import { auth, db, storage } from './firebase';
 import { onAuthStateChanged, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
@@ -421,6 +421,52 @@ function AdminPage({ setView }) {
   );
 }
 
+// --- COMPONENTE PRODUCTO CARD ---
+function ProductCard({ product, isMobile, addToCart }) {
+  const isOutOfStock = product.outOfStock === true;
+  const isComingSoon = product.comingSoon === true;
+  const isUnavailable = isOutOfStock || isComingSoon;
+  return (
+    <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col h-full transition-all duration-300 ${isUnavailable ? '' : 'hover:-translate-y-2 hover:shadow-xl group'}`}>
+      <div className={`overflow-hidden relative ${isMobile ? 'h-64 aspect-square' : 'h-48'}`}>
+        <img src={product.image} alt={product.name}
+          className={`w-full h-full object-cover transition-transform duration-700
+            ${isUnavailable ? 'brightness-75' : 'group-hover:scale-110'}
+            ${isOutOfStock ? 'grayscale' : ''}`} />
+        {!isUnavailable && (
+          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur text-stone-900 text-xs font-bold px-2 py-1 rounded-md shadow-sm">${product.price.toLocaleString('es-AR')}</div>
+        )}
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-black/60 backdrop-blur-[2px] w-full py-2.5 text-center transform -rotate-0">
+              <span className="text-white font-bold text-sm tracking-widest uppercase">Sin stock hoy</span>
+              <span className="block text-stone-300 text-[10px] mt-0.5 italic">¡Volvemos pronto! 🙏</span>
+            </div>
+          </div>
+        )}
+        {isComingSoon && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[1px]">
+            <span className="text-2xl mb-1">👀</span>
+            <span className="text-white font-bold text-sm tracking-widest uppercase">Próximamente</span>
+            <span className="text-stone-300 text-[10px] mt-0.5 italic">¡Algo rico se viene! 🤫</span>
+          </div>
+        )}
+      </div>
+      <div className="p-5 flex flex-col flex-grow">
+        <h3 className={`text-lg font-bold leading-tight mb-1 ${isUnavailable ? 'text-stone-400' : 'text-stone-900'}`}>{product.name}</h3>
+        <p className="text-stone-500 text-xs mb-4 flex-grow leading-relaxed line-clamp-3">{product.description}</p>
+        {isOutOfStock ? (
+          <div className="w-full bg-stone-100 text-stone-400 font-bold py-2 rounded-lg text-sm text-center border border-stone-200 cursor-not-allowed select-none">SIN STOCK HOY</div>
+        ) : isComingSoon ? (
+          <div className="w-full bg-amber-50 text-amber-600 font-bold py-2 rounded-lg text-sm text-center border border-amber-200 cursor-not-allowed select-none">MUY PRONTO ✨</div>
+        ) : (
+          <button onClick={() => addToCart(product)} className="w-full bg-stone-100 text-stone-900 font-bold py-2 rounded-lg hover:bg-stone-900 hover:text-white transition-colors text-sm active:scale-95 border border-stone-200 hover:border-stone-900">AGREGAR +</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // --- 5. COMPONENTE TIENDA (EL DISEÑO VISUAL PRO) ---
 function StorePage({ setView }) {
   const [cart, setCart] = useState([]);
@@ -437,6 +483,7 @@ function StorePage({ setView }) {
 
   // DATOS REALES DE FIREBASE
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [marqueeText, setMarqueeText] = useState("Cargando...");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -445,11 +492,14 @@ function StorePage({ setView }) {
       setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
       setIsLoading(false);
     });
+    const unsubCats = onSnapshot(collection(db, "categories"), (snap) => {
+      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
     const unsubSett = onSnapshot(doc(db, "settings", "main_settings"), (d) => {
        if(d.exists()) setMarqueeText(d.data().marqueeText);
        else setMarqueeText("🕰 Jueves a Domingos | 19:00 a 23:00 hrs • Envíos a todo Moreno");
     });
-    return () => { unsubProd(); unsubSett(); };
+    return () => { unsubProd(); unsubCats(); unsubSett(); };
   }, []);
 
   const [checkoutData, setCheckoutData] = useState({
@@ -505,7 +555,7 @@ function StorePage({ setView }) {
   };
 
   const filteredProducts = useMemo(() => {
-    let items = products; 
+    let items = products;
     if (categoryFilter !== 'all') items = items.filter(p => p.category === categoryFilter);
     if (searchTerm) items = items.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
     return [...items].sort((a, b) => {
@@ -565,10 +615,10 @@ function StorePage({ setView }) {
           ))}
           
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
-            <h1 className="text-6xl md:text-8xl font-extrabold text-white tracking-tight drop-shadow-2xl mb-6">
+            <h1 className="text-4xl sm:text-6xl md:text-8xl font-extrabold text-white tracking-tight drop-shadow-2xl mb-6">
               CONTRE<span className="text-amber-500">BURGER</span>
             </h1>
-            <p className="text-white text-xl md:text-3xl font-light tracking-widest drop-shadow-lg mb-8">SABOR QUE HACE HISTORIA</p>
+            <p className="text-white text-base sm:text-xl md:text-3xl font-light tracking-widest drop-shadow-lg mb-8">SABOR QUE HACE HISTORIA</p>
             <div className="mt-8">
                <button onClick={() => menuRef.current?.scrollIntoView({ behavior: 'smooth' })} className="bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105 shadow-lg">VER MENÚ</button>
             </div>
@@ -583,17 +633,45 @@ function StorePage({ setView }) {
 
           <div className="relative z-10 max-w-7xl mx-auto w-full h-full flex flex-col justify-center">
             <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-12 uppercase tracking-tight">¿Qué te provoca <span className="text-amber-500">hoy?</span></h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 h-full md:h-[60vh]">
-              {CATEGORIES.map((cat) => (
-                <button key={cat.id} onClick={() => handleCategorySelect(cat.id)} className="group relative h-40 md:h-full rounded-2xl overflow-hidden border border-stone-700 shadow-2xl transition-all duration-300 hover:scale-[1.02] hover:border-amber-500 hover:z-10 focus:outline-none focus:ring-4 focus:ring-amber-500/50">
-                  <img src={cat.image} alt={cat.label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-60 group-hover:opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90" />
-                  <div className="absolute bottom-0 left-0 right-0 p-6 text-center transform transition-transform duration-300 group-hover:-translate-y-2">
-                    <h3 className="text-2xl font-bold text-white uppercase tracking-wider group-hover:text-amber-400">{cat.label}</h3>
-                    <span className="text-xs text-stone-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-2 block">VER MENÚ →</span>
-                  </div>
-                </button>
-              ))}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+              {categories.map((cat) => {
+                const isOutOfStock = cat.outOfStock === true;
+                const isComingSoon = cat.comingSoon === true;
+                const isUnavailable = isOutOfStock || isComingSoon;
+                return (
+                  <button key={cat.id} onClick={() => !isUnavailable && handleCategorySelect(cat.id)}
+                    className={`group relative h-36 sm:h-44 md:h-52 rounded-2xl overflow-hidden border shadow-xl transition-all duration-300 focus:outline-none
+                      ${isUnavailable ? 'border-stone-700 cursor-default' : 'border-stone-700 hover:scale-[1.03] hover:border-amber-500 hover:z-10 focus:ring-2 focus:ring-amber-500/50'}`}>
+                    <img src={cat.image} alt={cat.label}
+                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 opacity-60
+                        ${isUnavailable ? 'grayscale brightness-50' : 'group-hover:scale-110 group-hover:opacity-80'}`} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                    {isComingSoon ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
+                        <span className="text-2xl mb-1">👀</span>
+                        <h3 className="text-base font-extrabold text-white uppercase tracking-wide leading-tight">{cat.label}</h3>
+                        <div className="mt-2 bg-amber-500/20 border border-amber-400/40 rounded-full px-3 py-0.5">
+                          <span className="text-amber-300 text-[10px] font-bold uppercase tracking-widest">Muy pronto...</span>
+                        </div>
+                        <span className="text-stone-400 text-[10px] mt-1.5 italic">¡Algo rico se viene! 🤫</span>
+                      </div>
+                    ) : isOutOfStock ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
+                        <h3 className="text-base font-extrabold text-white uppercase tracking-wide leading-tight">{cat.label}</h3>
+                        <div className="mt-2 bg-white/10 border border-white/20 rounded-full px-3 py-0.5">
+                          <span className="text-white text-[10px] font-bold uppercase tracking-widest">Sin stock hoy</span>
+                        </div>
+                        <span className="text-stone-400 text-[10px] mt-1.5 italic">¡Volvemos pronto! 🙏</span>
+                      </div>
+                    ) : (
+                      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-5 text-center transform transition-transform duration-300 group-hover:-translate-y-1">
+                        <h3 className="text-base md:text-xl font-bold text-white uppercase tracking-wide group-hover:text-amber-400 leading-tight">{cat.label}</h3>
+                        <span className="text-xs text-stone-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-1 block">VER MENÚ →</span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
             <div className="text-center mt-12">
               <button onClick={() => handleCategorySelect('all')} className="inline-flex items-center gap-2 text-stone-400 hover:text-white transition-colors border-b border-transparent hover:border-white pb-1">Ver todo el menú <Icons.ArrowRight /></button>
@@ -607,7 +685,7 @@ function StorePage({ setView }) {
               <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 items-center justify-between">
                   <div className="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-hide">
                       <button onClick={() => {setCategoryFilter('all'); setCurrentPage(1);}} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${categoryFilter === 'all' ? 'bg-stone-900 text-white' : 'bg-stone-100 text-stone-600'}`}>Todo</button>
-                      {CATEGORIES.map(cat => (
+                      {categories.filter(cat => cat.available !== false).map(cat => (
                           <button key={cat.id} onClick={() => {setCategoryFilter(cat.id); setCurrentPage(1);}} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${categoryFilter === cat.id ? 'bg-amber-500 text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>{cat.label}</button>
                       ))}
                   </div>
@@ -628,17 +706,7 @@ function StorePage({ setView }) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {currentItems.map(product => (
-                    <div key={product.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col h-full hover:-translate-y-2 hover:shadow-xl transition-all duration-300 group">
-                    <div className={`overflow-hidden relative ${isMobile ? 'h-64 aspect-square' : 'h-48'}`}>
-                        <img src={product.image} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                        <div className="absolute top-2 right-2 bg-white/90 backdrop-blur text-stone-900 text-xs font-bold px-2 py-1 rounded-md shadow-sm">${product.price.toLocaleString('es-AR')}</div>
-                    </div>
-                    <div className="p-5 flex flex-col flex-grow">
-                        <h3 className="text-lg font-bold text-stone-900 leading-tight mb-1">{product.name}</h3>
-                        <p className="text-stone-500 text-xs mb-4 flex-grow leading-relaxed line-clamp-3">{product.description}</p>
-                        <button onClick={() => addToCart(product)} className="w-full bg-stone-100 text-stone-900 font-bold py-2 rounded-lg hover:bg-stone-900 hover:text-white transition-colors text-sm active:scale-95 border border-stone-200 hover:border-stone-900">AGREGAR +</button>
-                    </div>
-                    </div>
+                    <ProductCard key={product.id} product={product} isMobile={isMobile} addToCart={addToCart} />
                 ))}
                 </div>
               )}
