@@ -1,494 +1,662 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { db, storage, auth } from './firebase';
+import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { signOut } from 'firebase/auth';
 
-// --- ICONOS DE ADMINISTRACIÓN ---
-const AdminIcons = {
+// --- ICONOS ---
+const Icon = {
   Dashboard: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>,
-  Burger: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11.1 2.2a2 2 0 0 0-1.8 1.1L7 9h10l-2.3-5.7a2 2 0 0 0-1.8-1.1h-1.8z"/><path d="m3 11 1.7 6.9a2 2 0 0 0 2 1.5h10.6a2 2 0 0 0 2-1.5L21 11H3z"/><path d="M5.6 20.3a2 2 0 0 0 1.8 1.1h9.2a2 2 0 0 0 1.8-1.1l.6-2.3H5l.6 2.3z"/></svg>,
-  List: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>,
+  Burger: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11.1 2.2a2 2 0 0 0-1.8 1.1L7 9h10l-2.3-5.7a2 2 0 0 0-1.8-1.1h-1.8z"/><path d="m3 11 1.7 6.9a2 2 0 0 0 2 1.5h10.6a2 2 0 0 0 2-1.5L21 11H3z"/></svg>,
+  Tag: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>,
   Megaphone: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
   Edit: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>,
   Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
   Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
   Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
-  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
+  Search: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>,
   Logout: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>,
   Menu: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>,
   ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
   ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
-  X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+  X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+  Filter: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
+  Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
+  Layers: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>,
+  AlertCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
 };
 
-// --- DATOS INICIALES ---
-const INITIAL_PRODUCTS = [
-  { id: 1, name: "La Vikinga", category: "burgers", price: 8500, description: "Doble carne smasheada, cheddar, cebolla crispy y salsa nórdica.", image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80" },
-  { id: 2, name: "Contre Royal", category: "burgers", price: 9200, description: "180g de carne, bacon ahumado, huevo a la plancha y barbacoa.", image: "https://images.unsplash.com/photo-1596662951482-0c4ba74a6df6?auto=format&fit=crop&w=800&q=80" },
-  { id: 3, name: "Veggie Roots", category: "burgers", price: 7800, description: "Medallón de lentejas, rúcula, tomates confitados y mayo de palta.", image: "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=800&q=80" },
-  { id: 4, name: "Cheese Bomb", category: "burgers", price: 8900, description: "Triple carne, triple cheddar, inyectada con salsa de queso.", image: "https://s3.eu-central-1.amazonaws.com/qatar-delicious/ItemsImages/ItemImage_36231_(0).jpg" },
-  { id: 10, name: "Tequeños Clásicos (x6)", category: "tequenos", price: 4500, description: "Masa fina y crocante rellena de queso llanero.", image: "https://i0.wp.com/mosaicofrozen.com/wp-content/uploads/2022/01/tequenos-mosaico-frozen-3-1.jpg?fit=600%2C629&ssl=1" },
-  { id: 11, name: "Tequeños Especiales (x6)", category: "tequenos", price: 5000, description: "Rellenos de queso y guayaba o chocolate.", image: "https://storage.ww-api.com/storage_api/v1/commerce_pict/3470081/1710004731146_3233168/tequeno-guayaba.jpeg" },
-  { id: 20, name: "Empanada de Carne Mechada", category: "empanadas", price: 1500, description: "Carne cortada a cuchillo, jugosa y picante.", image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3gDwiaxDSAIkinV_1cqDznoKvTPq2n33biQ&s" },
-  { id: 21, name: "Empanada de JyQ", category: "empanadas", price: 1400, description: "Jamón cocido natural y mozzarella.", image: "https://imag.bonviveur.com/empanadas-venezolanas-de-pollo.jpg" },
-  { id: 30, name: "Coca Cola", category: "drinks", price: 2000, description: "Lata 354ml bien fría.", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=800&q=80" },
-  { id: 31, name: "Cerveza IPA", category: "drinks", price: 3500, description: "Pinta artesanal 500ml.", image: "https://bruselasbeer.com/cdn/shop/files/Volfas_IPA_150bf91d-9443-472e-afb0-2c87254d5b05.jpg?v=1756164323" },
-  { id: 32, name: "Agua Mineral", category: "drinks", price: 1500, description: "Con o sin gas 500ml.", image: "https://i.pinimg.com/1200x/a4/01/19/a40119e82b50611e73b1565d0fded827.jpg" },
-  { id: 40, name: "Chocotorta", category: "desserts", price: 3000, description: "La clásica argentina, porción generosa.", image: "https://resizer.glanacion.com/resizer/v2/-4WVQEFLGJ5BWRK4WYRLC7PXI3M.jpg?auth=ac8e184e33278619c066a8c11de9711367c8e28b668eca48368ecd77664c00f3&width=1920&height=1282&quality=70&smart=true" },
-  { id: 41, name: "Cheesecake", category: "desserts", price: 3500, description: "Con frutos rojos patagónicos.", image: "https://cdn.blog.paulinacocina.net/wp-content/uploads/2025/01/receta-de-cheesecake-1742898428.jpg" },
+// Iconos de categoría para elegir (emojis visuales mapeados a SVG representativos)
+const CATEGORY_ICONS = [
+  { key: 'burger', label: 'Hamburguesa', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11.1 2.2a2 2 0 0 0-1.8 1.1L7 9h10l-2.3-5.7a2 2 0 0 0-1.8-1.1h-1.8z"/><path d="m3 11 1.7 6.9a2 2 0 0 0 2 1.5h10.6a2 2 0 0 0 2-1.5L21 11H3z"/></svg> },
+  { key: 'pizza', label: 'Pizza', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 11h.01"/><path d="M11 15h.01"/><path d="M16 16h.01"/><path d="m2 16 20 6-6-20A20 20 0 0 0 2 16"/><path d="M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4"/></svg> },
+  { key: 'coffee', label: 'Bebida', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg> },
+  { key: 'cake', label: 'Postre', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2 1 2 1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg> },
+  { key: 'salad', label: 'Ensalada', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-3.19 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1"/><path d="m13 12 4-4"/><path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2"/></svg> },
+  { key: 'utensils', label: 'Comida', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg> },
+  { key: 'star', label: 'Especial', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> },
+  { key: 'flame', label: 'Picante', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> },
+  { key: 'package', label: 'Combo', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg> },
 ];
-
-const INITIAL_CATEGORIES = [
-  { id: 'burgers', label: 'Hamburguesas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/Hamburguesa_categoria_9_16.png?alt=media&token=77f54e8b-fb6e-4103-b430-bca8ec65c8d5' },
-  { id: 'tequenos', label: 'Tequeños', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/tequenos_9_16.png?alt=media&token=cfa1bcc7-0802-42b5-804e-79a6f5bdcfd2' },
-  { id: 'empanadas', label: 'Empanadas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/empanadas_9_16.png?alt=media&token=b3fa27db-7945-47d2-b3c7-2bfccdb3c861' },
-  { id: 'drinks', label: 'Bebidas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/CAtegoria_bebidas_2_9_16.png?alt=media&token=86af7b5d-4310-478b-a0bb-93efc6011e33' },
-  { id: 'desserts', label: 'Postres', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/3%20LECHES_9_16.png?alt=media&token=4316a794-d3a9-4c0e-b172-09837b9bf100' },
-];
-
-const INITIAL_MARQUEE = "🕰 Jueves a Domingos | 19:00 a 23:00 hrs • Envíos a todo Moreno • Pedí por WhatsApp y retira";
 
 export default function Admin() {
-  const navigate = useNavigate(); // Hook para navegación y logout
-  
-  // --- ESTADOS LOCALES ---
-  const [activeTab, setActiveTab] = useState('products'); // products, categories, banner
-  const [products, setProducts] = useState(INITIAL_PRODUCTS);
-  const [categories, setCategories] = useState(INITIAL_CATEGORIES);
-  const [marqueeText, setMarqueeText] = useState(INITIAL_MARQUEE);
+  const navigate = useNavigate();
+
+  // --- ESTADOS ---
+  const [activeTab, setActiveTab] = useState('products');
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [marqueeText, setMarqueeText] = useState("Cargando banner...");
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Estado Sidebar
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Sidebar
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Paginación
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6; // Ajustado para móviles
-  
-  // Modal de Producto
+  const itemsPerPage = 6;
+
+  // Modal Producto
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState(null); 
+  const [currentProduct, setCurrentProduct] = useState(null);
+  const [fileToUpload, setFileToUpload] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // --- LÓGICA DE PRODUCTOS ---
-  const handleEditProduct = (product) => {
-    setCurrentProduct(product);
-    setIsProductModalOpen(true);
-  };
+  // Modal Categoría
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [currentCategory, setCurrentCategory] = useState(null);
+  const [catImageFile, setCatImageFile] = useState(null);
+  const [isSavingCat, setIsSavingCat] = useState(false);
+  const [catToDelete, setCatToDelete] = useState(null);
 
-  const handleCreateProduct = () => {
-    setCurrentProduct({ id: Date.now(), name: '', price: '', category: 'burgers', description: '', image: '' });
-    setIsProductModalOpen(true);
-  };
+  // --- CARGAR DATOS FIREBASE ---
+  useEffect(() => {
+    const unsubProducts = onSnapshot(collection(db, "products"), (snap) => {
+      setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setIsLoadingData(false);
+    });
 
-  const handleDeleteProduct = (id) => {
-    if (window.confirm('¿Estás seguro de eliminar este producto?')) {
-      setProducts(products.filter(p => p.id !== id));
+    const unsubCategories = onSnapshot(collection(db, "categories"), (snap) => {
+      const cats = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      // Si no hay categorías en Firebase, cargamos las predeterminadas
+      if (cats.length === 0) {
+        const defaults = [
+          { label: 'Hamburguesas', icon: 'burger', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/Hamburguesa_categoria_9_16.png?alt=media&token=77f54e8b-fb6e-4103-b430-bca8ec65c8d5' },
+          { label: 'Tequeños', icon: 'utensils', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/tequenos_9_16.png?alt=media&token=cfa1bcc7-0802-42b5-804e-79a6f5bdcfd2' },
+          { label: 'Empanadas', icon: 'utensils', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/empanadas_9_16.png?alt=media&token=b3fa27db-7945-47d2-b3c7-2bfccdb3c861' },
+          { label: 'Bebidas', icon: 'coffee', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/CAtegoria_bebidas_2_9_16.png?alt=media&token=86af7b5d-4310-478b-a0bb-93efc6011e33' },
+          { label: 'Postres', icon: 'cake', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/3%20LECHES_9_16.png?alt=media&token=4316a794-d3a9-4c0e-b172-09837b9bf100' },
+        ];
+        defaults.forEach(cat => addDoc(collection(db, "categories"), cat));
+      } else {
+        setCategories(cats);
+      }
+    });
+
+    const unsubSettings = onSnapshot(collection(db, "settings"), (snap) => {
+      const settings = snap.docs.map(d => d.data());
+      setMarqueeText(settings[0]?.marqueeText || "¡Bienvenido a Contreburger!");
+    });
+
+    return () => { unsubProducts(); unsubCategories(); unsubSettings(); };
+  }, []);
+
+  // --- PRODUCTOS ---
+  const handleEditProduct = (product) => { setCurrentProduct(product); setFileToUpload(null); setIsProductModalOpen(true); };
+  const handleCreateProduct = () => { setCurrentProduct({ name: '', price: '', category: categories[0]?.id || '', description: '', image: '' }); setFileToUpload(null); setIsProductModalOpen(true); };
+
+  const handleDeleteProduct = async (id) => {
+    if (window.confirm('¿Eliminar este producto permanentemente?')) {
+      try { await deleteDoc(doc(db, "products", id)); } catch (e) { alert("Error: " + e.message); }
     }
   };
 
-  const handleSaveProduct = (e) => {
+  const handleSaveProduct = async (e) => {
     e.preventDefault();
-    const productToSave = { ...currentProduct, price: Number(currentProduct.price) };
-
-    if (products.find(p => p.id === productToSave.id)) {
-      setProducts(products.map(p => p.id === productToSave.id ? productToSave : p));
-    } else {
-      setProducts([...products, productToSave]);
-    }
-    setIsProductModalOpen(false);
+    setIsSaving(true);
+    try {
+      let imageUrl = currentProduct.image;
+      if (fileToUpload) {
+        const fileRef = ref(storage, `products/${Date.now()}_${fileToUpload.name}`);
+        await uploadBytes(fileRef, fileToUpload);
+        imageUrl = await getDownloadURL(fileRef);
+      }
+      const productData = { ...currentProduct, price: Number(currentProduct.price), image: imageUrl };
+      if (currentProduct.id) {
+        await updateDoc(doc(db, "products", currentProduct.id), productData);
+      } else {
+        await addDoc(collection(db, "products"), productData);
+      }
+      setIsProductModalOpen(false);
+    } catch (e) { alert("Error al guardar: " + e.message); }
+    finally { setIsSaving(false); }
   };
 
-  // --- FUNCIÓN DE LOGOUT CORRECTA ---
-  const handleLogout = () => {
-    if (window.confirm("¿Deseas cerrar sesión?")) {
-      localStorage.removeItem('contre_auth'); // Borra el token
-      navigate('/login'); // Redirige al login usando el Router
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      setFileToUpload(e.target.files[0]);
+      setCurrentProduct({ ...currentProduct, image: URL.createObjectURL(e.target.files[0]) });
     }
   };
 
-  // --- LÓGICA DE PAGINACIÓN ---
-  const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  // --- CATEGORÍAS ---
+  const handleCreateCategory = () => {
+    setCurrentCategory({ label: '', icon: 'burger', image: '' });
+    setCatImageFile(null);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleEditCategory = (cat) => {
+    setCurrentCategory({ ...cat });
+    setCatImageFile(null);
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleDeleteCategory = async (cat) => {
+    const productsInCat = products.filter(p => p.category === cat.id);
+    if (productsInCat.length > 0) {
+      setCatToDelete({ ...cat, count: productsInCat.length });
+      return;
+    }
+    if (window.confirm(`¿Eliminar la categoría "${cat.label}"?`)) {
+      try { await deleteDoc(doc(db, "categories", cat.id)); } catch (e) { alert("Error: " + e.message); }
+    }
+  };
+
+  const handleSaveCategory = async (e) => {
+    e.preventDefault();
+    if (!currentCategory.label.trim()) return;
+    setIsSavingCat(true);
+    try {
+      let imageUrl = currentCategory.image || '';
+      if (catImageFile) {
+        const fileRef = ref(storage, `categories/${Date.now()}_${catImageFile.name}`);
+        await uploadBytes(fileRef, catImageFile);
+        imageUrl = await getDownloadURL(fileRef);
+      }
+      const catData = { label: currentCategory.label.trim(), icon: currentCategory.icon || 'utensils', image: imageUrl };
+      if (currentCategory.id) {
+        await updateDoc(doc(db, "categories", currentCategory.id), catData);
+      } else {
+        await addDoc(collection(db, "categories"), catData);
+      }
+      setIsCategoryModalOpen(false);
+    } catch (e) { alert("Error al guardar categoría: " + e.message); }
+    finally { setIsSavingCat(false); }
+  };
+
+  // --- BANNER ---
+  const handleSaveBanner = async () => {
+    try {
+      await setDoc(doc(db, "settings", "main_settings"), { marqueeText }, { merge: true });
+      alert("¡Cinta actualizada!");
+    } catch (e) { alert("Error: " + e.message); }
+  };
+
+  // --- LOGOUT ---
+  const handleLogout = async () => {
+    if (window.confirm("¿Cerrar sesión?")) {
+      await signOut(auth);
+      localStorage.removeItem('contre_auth');
+      navigate('/login');
+    }
+  };
+
+  // --- FILTROS Y PAGINACIÓN ---
+  const filteredProducts = products.filter(p => {
+    const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchCat = selectedCategoryFilter === 'all' || p.category === selectedCategoryFilter;
+    return matchSearch && matchCat;
+  });
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const currentProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
-
-  // --- LÓGICA DE IMAGEN ---
-  const handleImageChange = (e, setter) => {
-    const file = e.target.files[0];
-    if (file) {
-        const imageUrl = URL.createObjectURL(file);
-        setter(prev => ({ ...prev, image: imageUrl }));
-    }
+  const getCategoryLabel = (catId) => categories.find(c => c.id === catId)?.label || catId;
+  const getCategoryIcon = (iconKey) => {
+    const found = CATEGORY_ICONS.find(i => i.key === iconKey);
+    return found ? <found.svg /> : <Icon.Tag />;
   };
 
-  // --- COMPONENTE SIDEBAR ITEM ---
-  const SidebarItem = ({ id, label, icon: Icon }) => (
-    <button 
-      onClick={(e) => { 
-        e.stopPropagation(); // Evita que se dispare el click del aside
-        setActiveTab(id); 
-        setIsMobileSidebarOpen(false); 
-      }}
+  // --- SIDEBAR ITEM ---
+  const SidebarItem = ({ id, label, icon: IconComp }) => (
+    <button
+      onClick={(e) => { e.stopPropagation(); setActiveTab(id); setIsMobileSidebarOpen(false); }}
       className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-medium whitespace-nowrap overflow-hidden z-20 relative
-        ${activeTab === id ? 'bg-amber-600 text-white shadow-lg' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}
-      `}
-      title={label}
+        ${activeTab === id ? 'bg-amber-600 text-white shadow-lg' : 'text-stone-400 hover:bg-stone-800 hover:text-white'}`}
     >
-      <div className="min-w-[20px]"><Icon /></div>
-      <span className={`transition-opacity duration-300 ${isSidebarExpanded ? 'opacity-100' : 'opacity-0 md:hidden group-hover:block'}`}>{label}</span>
+      <div className="min-w-[20px]"><IconComp /></div>
+      <span className={`transition-opacity duration-300 ${isSidebarExpanded ? 'opacity-100' : 'opacity-0 md:hidden'}`}>{label}</span>
     </button>
   );
 
   return (
     <div className="flex h-screen bg-stone-50 font-sans text-stone-900 overflow-hidden relative">
-      
-      {/* SIDEBAR DESKTOP & MOBILE */}
-      <aside 
+
+      {/* SIDEBAR */}
+      <aside
         onClick={() => setIsSidebarExpanded(!isSidebarExpanded)}
-        className={`fixed md:relative inset-y-0 left-0 z-30 bg-stone-900 flex flex-col p-3 shadow-xl transition-all duration-300 ease-in-out cursor-pointer group/sidebar
+        className={`fixed md:relative inset-y-0 left-0 z-30 bg-stone-900 flex flex-col p-3 shadow-xl transition-all duration-300 ease-in-out cursor-pointer
           ${isMobileSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0'}
-          ${isSidebarExpanded ? 'md:w-64' : 'md:w-20'}
-        `}
-        title="Clic para expandir/contraer"
+          ${isSidebarExpanded ? 'md:w-64' : 'md:w-20'}`}
       >
-        {/* Fondo con Patrón Vectorial (Igual al Frontend) */}
-        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '30px 30px'
-        }} />
-
         <div className="relative z-10 flex flex-col h-full">
-            {/* Header Sidebar */}
-            <div className="mb-8 px-2 mt-4 flex items-center justify-between md:justify-center">
-                <div className={`overflow-hidden transition-all duration-300 ${isSidebarExpanded ? 'w-full opacity-100' : 'w-0 opacity-0 md:w-auto md:opacity-100'}`}>
-                    {/* Mostrar solo logo pequeño si está colapsado en desktop */}
-                    {isSidebarExpanded || isMobileSidebarOpen ? (
-                        <div>
-                            <h1 className="text-xl font-extrabold text-white tracking-tight whitespace-nowrap">
-                                CONTRE<span className="text-amber-500">ADMIN</span>
-                            </h1>
-                            <p className="text-stone-500 text-[10px]">v1.0</p>
-                        </div>
-                    ) : (
-                        <div className="w-8 h-8 rounded bg-amber-500 flex items-center justify-center font-bold text-stone-900 shadow-lg shadow-amber-500/20">C</div>
-                    )}
-                </div>
-                {/* Botón Cerrar en Móvil */}
-                <button onClick={(e) => { e.stopPropagation(); setIsMobileSidebarOpen(false); }} className="md:hidden text-stone-400 hover:text-white"><AdminIcons.X /></button>
-            </div>
-            
-            {/* Menú */}
-            <nav className="space-y-2 flex-grow">
-                <SidebarItem id="products" label="Productos" icon={AdminIcons.Burger} />
-                <SidebarItem id="categories" label="Categorías" icon={AdminIcons.List} />
-                <SidebarItem id="banner" label="Cinta / Banner" icon={AdminIcons.Megaphone} />
-            </nav>
-
-            {/* Logout */}
-            <div className="mt-auto pt-4 border-t border-stone-800 relative z-20">
-                <button 
-                    onClick={(e) => {
-                        e.stopPropagation(); // Evita que se dispare el click del aside
-                        handleLogout();
-                    }}
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-medium text-red-400 hover:bg-red-900/20 hover:text-red-300`}
-                    title="Cerrar Sesión"
-                >
-                    <div className="min-w-[20px]"><AdminIcons.Logout /></div>
-                    <span className={`transition-opacity duration-300 whitespace-nowrap ${isSidebarExpanded ? 'opacity-100' : 'opacity-0'}`}>Cerrar Sesión</span>
-                </button>
-            </div>
+          <div className="mb-8 px-2 mt-4 flex items-center justify-between md:justify-center">
+            {isSidebarExpanded || isMobileSidebarOpen ? (
+              <div>
+                <h1 className="text-xl font-extrabold text-white tracking-tight whitespace-nowrap">CONTRE<span className="text-amber-500">ADMIN</span></h1>
+                <p className="text-stone-500 text-[10px]">v2.0 Firebase</p>
+              </div>
+            ) : (
+              <div className="w-8 h-8 rounded bg-amber-500 flex items-center justify-center font-bold text-stone-900 shadow-lg">C</div>
+            )}
+            <button onClick={(e) => { e.stopPropagation(); setIsMobileSidebarOpen(false); }} className="md:hidden text-stone-400 hover:text-white"><Icon.X /></button>
+          </div>
+          <nav className="space-y-2 flex-grow">
+            <SidebarItem id="products" label="Productos" icon={Icon.Burger} />
+            <SidebarItem id="categories" label="Categorías" icon={Icon.Tag} />
+            <SidebarItem id="banner" label="Cinta / Banner" icon={Icon.Megaphone} />
+          </nav>
+          <div className="mt-auto pt-4 border-t border-stone-800 relative z-20">
+            <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-medium text-red-400 hover:bg-red-900/20 hover:text-red-300">
+              <div className="min-w-[20px]"><Icon.Logout /></div>
+              <span className={`transition-opacity duration-300 whitespace-nowrap ${isSidebarExpanded ? 'opacity-100' : 'opacity-0'}`}>Cerrar Sesión</span>
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* Overlay para Móvil */}
-      {isMobileSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsMobileSidebarOpen(false)} />
-      )}
+      {isMobileSidebarOpen && <div className="fixed inset-0 bg-black/50 z-20 md:hidden" onClick={() => setIsMobileSidebarOpen(false)} />}
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="flex-1 overflow-y-auto relative w-full">
-        {/* Header Superior */}
         <header className="bg-white border-b border-stone-200 sticky top-0 z-10 px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
-            <div className="flex items-center gap-4">
-                <button onClick={() => setIsMobileSidebarOpen(true)} className="md:hidden text-stone-600 hover:text-stone-900">
-                    <AdminIcons.Menu />
-                </button>
-                <h2 className="text-lg md:text-xl font-bold text-stone-800 capitalize truncate">
-                    {activeTab === 'products' ? 'Productos' : activeTab === 'categories' ? 'Categorías' : 'Banner'}
-                </h2>
+          <div className="flex items-center gap-4">
+            <button onClick={() => setIsMobileSidebarOpen(true)} className="md:hidden text-stone-600 hover:text-stone-900"><Icon.Menu /></button>
+            <h2 className="text-lg md:text-xl font-bold text-stone-800 capitalize">
+              {activeTab === 'products' ? 'Productos' : activeTab === 'categories' ? 'Categorías' : 'Cinta / Banner'}
+            </h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:block text-right">
+              <p className="text-sm font-bold text-stone-900">Erick Dev</p>
+              <p className="text-xs text-stone-500">Admin</p>
             </div>
-            <div className="flex items-center gap-3">
-                <div className="hidden md:block text-right">
-                    <p className="text-sm font-bold text-stone-900">Erick Dev</p>
-                    <p className="text-xs text-stone-500">Administrador</p>
-                </div>
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold border border-amber-200">E</div>
-            </div>
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold border border-amber-200">E</div>
+          </div>
         </header>
 
         <div className="p-4 md:p-8 max-w-6xl mx-auto pb-24">
-            
-            {/* VISTA PRODUCTOS */}
-            {activeTab === 'products' && (
-                <div className="space-y-6">
-                    {/* Barra de Herramientas */}
-                    <div className="flex flex-col md:flex-row justify-between gap-4">
-                        <div className="relative w-full md:w-96">
-                            <input 
-                                type="text" 
-                                placeholder="Buscar..." 
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm text-sm"
-                                value={searchTerm}
-                                onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                            />
-                            <div className="absolute left-3 top-3.5 text-stone-400"><AdminIcons.Search /></div>
-                        </div>
-                        <button onClick={handleCreateProduct} className="bg-stone-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex items-center justify-center gap-2 text-sm">
-                            <AdminIcons.Plus /> Nuevo
-                        </button>
-                    </div>
 
-                    {/* Tabla de Productos (Desktop) y Cards (Mobile) */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                        {/* Vista Desktop */}
-                        <table className="w-full text-left hidden md:table">
-                            <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 text-xs uppercase tracking-wider">
-                                <tr>
-                                    <th className="px-6 py-4 font-bold">Producto</th>
-                                    <th className="px-6 py-4 font-bold">Categoría</th>
-                                    <th className="px-6 py-4 font-bold">Precio</th>
-                                    <th className="px-6 py-4 font-bold text-right">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-stone-100">
-                                {currentProducts.map(product => (
-                                    <tr key={product.id} className="hover:bg-stone-50 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-4">
-                                                <img src={product.image} alt="" className="w-12 h-12 rounded-lg object-cover shadow-sm bg-stone-100" />
-                                                <div>
-                                                    <p className="font-bold text-stone-900">{product.name}</p>
-                                                    <p className="text-xs text-stone-500 truncate max-w-[200px]">{product.description}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="px-3 py-1 bg-stone-100 text-stone-600 rounded-full text-xs font-bold border border-stone-200">
-                                                {categories.find(c => c.id === product.category)?.label || product.category}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-stone-900">
-                                            ${product.price.toLocaleString('es-AR')}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-50 hover:bg-amber-100 text-stone-500 hover:text-amber-700 rounded-lg transition-colors"><AdminIcons.Edit /></button>
-                                                <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-stone-50 hover:bg-red-100 text-stone-500 hover:text-red-600 rounded-lg transition-colors"><AdminIcons.Trash /></button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+          {/* ===== VISTA PRODUCTOS ===== */}
+          {activeTab === 'products' && (
+            <div className="space-y-6">
 
-                        {/* Vista Mobile (Cards) */}
-                        <div className="md:hidden divide-y divide-stone-100">
-                             {currentProducts.map(product => (
-                                <div key={product.id} className="p-4 flex gap-4 items-start">
-                                    <img src={product.image} alt="" className="w-20 h-20 rounded-xl object-cover shadow-sm bg-stone-100 flex-shrink-0" />
-                                    <div className="flex-grow">
-                                        <div className="flex justify-between items-start mb-1">
-                                            <h3 className="font-bold text-stone-900">{product.name}</h3>
-                                            <span className="font-bold text-amber-600">${product.price.toLocaleString('es-AR')}</span>
-                                        </div>
-                                        <p className="text-xs text-stone-500 line-clamp-2 mb-2">{product.description}</p>
-                                        <div className="flex justify-between items-center mt-2">
-                                            <span className="text-[10px] bg-stone-100 px-2 py-1 rounded text-stone-500 uppercase font-bold">
-                                                {categories.find(c => c.id === product.category)?.label}
-                                            </span>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-100 text-stone-600 rounded-lg"><AdminIcons.Edit /></button>
-                                                <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-red-50 text-red-500 rounded-lg"><AdminIcons.Trash /></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                             ))}
-                        </div>
-
-                        {currentProducts.length === 0 && <div className="p-12 text-center text-stone-400">No hay productos.</div>}
-                    </div>
-
-                    {/* Controles de Paginación */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-stone-200">
-                            <button onClick={prevPage} disabled={currentPage === 1} className="flex items-center gap-1 px-4 py-2 text-sm font-bold text-stone-600 bg-stone-100 rounded-lg disabled:opacity-50 hover:bg-amber-100 transition-colors">
-                                <AdminIcons.ChevronLeft /> Anterior
-                            </button>
-                            <span className="text-sm font-medium text-stone-500">
-                                Página <span className="text-stone-900 font-bold">{currentPage}</span> de {totalPages}
-                            </span>
-                            <button onClick={nextPage} disabled={currentPage === totalPages} className="flex items-center gap-1 px-4 py-2 text-sm font-bold text-stone-600 bg-stone-100 rounded-lg disabled:opacity-50 hover:bg-amber-100 transition-colors">
-                                Siguiente <AdminIcons.ChevronRight />
-                            </button>
-                        </div>
-                    )}
+              {/* Barra de búsqueda + botón nuevo */}
+              <div className="flex flex-col md:flex-row justify-between gap-4">
+                <div className="relative w-full md:w-80">
+                  <input
+                    type="text"
+                    placeholder="Buscar producto..."
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none shadow-sm text-sm"
+                    value={searchTerm}
+                    onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                  />
+                  <div className="absolute left-3 top-3.5 text-stone-400"><Icon.Search /></div>
                 </div>
-            )}
+                <button onClick={handleCreateProduct} className="bg-stone-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex items-center justify-center gap-2 text-sm">
+                  <Icon.Plus /> Nuevo producto
+                </button>
+              </div>
 
-            {/* VISTA CATEGORÍAS */}
-            {activeTab === 'categories' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {categories.map(cat => (
-                        <div key={cat.id} className="bg-white rounded-2xl p-4 shadow-sm border border-stone-200 flex flex-col gap-4">
-                            <div className="relative h-40 rounded-xl overflow-hidden group">
-                                <img src={cat.image} className="w-full h-full object-cover" alt={cat.label} />
-                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <label className="cursor-pointer bg-white text-stone-900 px-4 py-2 rounded-lg font-bold text-sm hover:bg-amber-500 hover:text-white transition-colors flex items-center gap-2 shadow-lg">
-                                        <AdminIcons.Upload /> Cambiar
-                                        <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            if(file) {
-                                                const url = URL.createObjectURL(file);
-                                                setCategories(categories.map(c => c.id === cat.id ? {...c, image: url} : c));
-                                            }
-                                        }}/>
-                                    </label>
+              {/* FILTRO POR CATEGORÍAS */}
+              <div className="flex gap-2 flex-wrap">
+                <button
+                  onClick={() => { setSelectedCategoryFilter('all'); setCurrentPage(1); }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all ${selectedCategoryFilter === 'all' ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-600'}`}
+                >
+                  <Icon.Layers /> Todos
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCategoryFilter === 'all' ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-500'}`}>{products.length}</span>
+                </button>
+                {categories.map(cat => {
+                  const count = products.filter(p => p.category === cat.id).length;
+                  const isActive = selectedCategoryFilter === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => { setSelectedCategoryFilter(cat.id); setCurrentPage(1); }}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold border transition-all ${isActive ? 'bg-amber-500 text-white border-amber-500 shadow-md' : 'bg-white text-stone-600 border-stone-200 hover:border-amber-400 hover:text-amber-600'}`}
+                    >
+                      <span className="w-4 h-4">{getCategoryIcon(cat.icon)}</span>
+                      {cat.label}
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-stone-100 text-stone-500'}`}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* TABLA DE PRODUCTOS */}
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                {isLoadingData ? (
+                  <div className="p-12 text-center text-stone-400 flex flex-col items-center">
+                    <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                    Cargando productos...
+                  </div>
+                ) : (
+                  <>
+                    {/* Desktop */}
+                    <table className="w-full text-left hidden md:table">
+                      <thead className="bg-stone-50 border-b border-stone-200 text-stone-500 text-xs uppercase tracking-wider">
+                        <tr>
+                          <th className="px-6 py-4 font-bold">Producto</th>
+                          <th className="px-6 py-4 font-bold">Categoría</th>
+                          <th className="px-6 py-4 font-bold">Precio</th>
+                          <th className="px-6 py-4 font-bold text-right">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-stone-100">
+                        {currentProducts.map(product => (
+                          <tr key={product.id} className="hover:bg-stone-50 transition-colors group">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-4">
+                                <img src={product.image || "https://via.placeholder.com/150"} alt="" className="w-12 h-12 rounded-lg object-cover shadow-sm bg-stone-100" />
+                                <div>
+                                  <p className="font-bold text-stone-900">{product.name}</p>
+                                  <p className="text-xs text-stone-500 truncate max-w-[200px]">{product.description}</p>
                                 </div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <h3 className="font-bold text-lg">{cat.label}</h3>
-                                <span className="text-xs text-stone-400 bg-stone-100 px-2 py-1 rounded">ID: {cat.id}</span>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs font-bold border border-amber-200 flex items-center gap-1.5 w-fit">
+                                <span className="w-3.5 h-3.5">{getCategoryIcon(categories.find(c => c.id === product.category)?.icon)}</span>
+                                {getCategoryLabel(product.category)}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 font-bold text-stone-900">${product.price?.toLocaleString('es-AR')}</td>
+                            <td className="px-6 py-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-50 hover:bg-amber-100 text-stone-500 hover:text-amber-700 rounded-lg transition-colors"><Icon.Edit /></button>
+                                <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-stone-50 hover:bg-red-100 text-stone-500 hover:text-red-600 rounded-lg transition-colors"><Icon.Trash /></button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
 
-            {/* VISTA BANNER */}
-            {activeTab === 'banner' && (
-                <div className="max-w-2xl mx-auto">
-                    <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
-                        <div className="bg-stone-900 p-6 text-white">
-                            <h3 className="text-xl font-bold flex items-center gap-2"><AdminIcons.Megaphone /> Editar Cinta</h3>
-                        </div>
-                        <div className="p-6 md:p-8">
-                            <label className="block font-bold text-stone-700 mb-2">Texto del Anuncio</label>
-                            <textarea 
-                                rows="4"
-                                className="w-full p-4 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium text-stone-800"
-                                value={marqueeText}
-                                onChange={(e) => setMarqueeText(e.target.value)}
-                            />
-                            
-                            <div className="mt-6 bg-amber-50 p-4 rounded-xl border border-amber-100">
-                                <p className="text-xs font-bold text-amber-800 uppercase mb-2">Previsualización:</p>
-                                <div className="overflow-hidden whitespace-nowrap bg-black py-2 px-4 rounded text-white text-xs font-bold">
-                                    {marqueeText}
-                                </div>
+                    {/* Mobile */}
+                    <div className="md:hidden divide-y divide-stone-100">
+                      {currentProducts.map(product => (
+                        <div key={product.id} className="p-4 flex gap-4 items-start">
+                          <img src={product.image || "https://via.placeholder.com/150"} alt="" className="w-20 h-20 rounded-xl object-cover shadow-sm bg-stone-100 flex-shrink-0" />
+                          <div className="flex-grow">
+                            <div className="flex justify-between items-start mb-1">
+                              <h3 className="font-bold text-stone-900">{product.name}</h3>
+                              <span className="font-bold text-amber-600">${product.price?.toLocaleString('es-AR')}</span>
                             </div>
-
-                            <button className="w-full mt-6 bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex justify-center items-center gap-2">
-                                <AdminIcons.Check /> Guardar Cambios
-                            </button>
+                            <p className="text-xs text-stone-500 line-clamp-2 mb-2">{product.description}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <span className="text-[10px] bg-amber-50 px-2 py-1 rounded text-amber-700 font-bold border border-amber-100">{getCategoryLabel(product.category)}</span>
+                              <div className="flex gap-2">
+                                <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-100 text-stone-600 rounded-lg"><Icon.Edit /></button>
+                                <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-red-50 text-red-500 rounded-lg"><Icon.Trash /></button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                      ))}
                     </div>
+                  </>
+                )}
+                {!isLoadingData && currentProducts.length === 0 && (
+                  <div className="p-12 text-center text-stone-400">
+                    <Icon.Search />
+                    <p className="mt-2">No hay productos {selectedCategoryFilter !== 'all' ? 'en esta categoría' : ''}.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* PAGINACIÓN */}
+              {totalPages > 1 && (
+                <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-stone-200">
+                  <button onClick={() => setCurrentPage(p => Math.max(p - 1, 1))} disabled={currentPage === 1} className="flex items-center gap-1 px-4 py-2 text-sm font-bold text-stone-600 bg-stone-100 rounded-lg disabled:opacity-50 hover:bg-amber-100 transition-colors"><Icon.ChevronLeft /> Anterior</button>
+                  <span className="text-sm font-medium text-stone-500">Página <span className="text-stone-900 font-bold">{currentPage}</span> de {totalPages}</span>
+                  <button onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))} disabled={currentPage === totalPages} className="flex items-center gap-1 px-4 py-2 text-sm font-bold text-stone-600 bg-stone-100 rounded-lg disabled:opacity-50 hover:bg-amber-100 transition-colors">Siguiente <Icon.ChevronRight /></button>
                 </div>
-            )}
+              )}
+            </div>
+          )}
+
+          {/* ===== VISTA CATEGORÍAS ===== */}
+          {activeTab === 'categories' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <p className="text-stone-500 text-sm">{categories.length} categorías registradas</p>
+                <button onClick={handleCreateCategory} className="bg-stone-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex items-center gap-2 text-sm">
+                  <Icon.Plus /> Nueva categoría
+                </button>
+              </div>
+
+              {/* Alerta si hay categoría con productos */}
+              {catToDelete && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start gap-3">
+                  <div className="text-red-500 mt-0.5"><Icon.AlertCircle /></div>
+                  <div className="flex-1">
+                    <p className="font-bold text-red-800">No se puede eliminar "{catToDelete.label}"</p>
+                    <p className="text-red-600 text-sm mt-1">Tiene {catToDelete.count} producto(s) asignado(s). Reasigná o eliminá esos productos primero.</p>
+                  </div>
+                  <button onClick={() => setCatToDelete(null)} className="text-red-400 hover:text-red-600"><Icon.X /></button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {categories.map(cat => {
+                  const productCount = products.filter(p => p.category === cat.id).length;
+                  return (
+                    <div key={cat.id} className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden group hover:shadow-md transition-shadow">
+                      {/* Imagen */}
+                      <div className="relative h-44 overflow-hidden bg-stone-100">
+                        {cat.image ? (
+                          <img src={cat.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt={cat.label} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-stone-300">
+                            <Icon.Image />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white shadow-lg">
+                            {getCategoryIcon(cat.icon)}
+                          </div>
+                          <h3 className="font-extrabold text-white text-lg drop-shadow">{cat.label}</h3>
+                        </div>
+                      </div>
+
+                      {/* Footer de la card */}
+                      <div className="p-4 flex items-center justify-between">
+                        <span className="text-sm text-stone-500 font-medium">
+                          <span className="font-bold text-stone-800">{productCount}</span> producto{productCount !== 1 ? 's' : ''}
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditCategory(cat)}
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-amber-700 rounded-lg transition-colors"
+                          >
+                            <Icon.Edit /> Editar
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(cat)}
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-stone-100 hover:bg-red-100 text-stone-600 hover:text-red-600 rounded-lg transition-colors"
+                          >
+                            <Icon.Trash /> Eliminar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ===== VISTA BANNER ===== */}
+          {activeTab === 'banner' && (
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+                <div className="bg-stone-900 p-6 text-white">
+                  <h3 className="text-xl font-bold flex items-center gap-2"><Icon.Megaphone /> Editar Cinta</h3>
+                </div>
+                <div className="p-6 md:p-8">
+                  <label className="block font-bold text-stone-700 mb-2">Texto del Anuncio</label>
+                  <textarea rows="4" className="w-full p-4 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium text-stone-800" value={marqueeText} onChange={(e) => setMarqueeText(e.target.value)} />
+                  <div className="mt-6 bg-amber-50 p-4 rounded-xl border border-amber-100">
+                    <p className="text-xs font-bold text-amber-800 uppercase mb-2">Previsualización:</p>
+                    <div className="overflow-hidden whitespace-nowrap bg-black py-2 px-4 rounded text-white text-xs font-bold">{marqueeText}</div>
+                  </div>
+                  <button onClick={handleSaveBanner} className="w-full mt-6 bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex justify-center items-center gap-2"><Icon.Check /> Guardar Cambios</button>
+                </div>
+              </div>
+            </div>
+          )}
 
         </div>
       </main>
 
-      {/* MODAL CREAR/EDITAR PRODUCTO */}
-      {isProductModalOpen && (
+      {/* ===== MODAL PRODUCTO ===== */}
+      {isProductModalOpen && currentProduct && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-            <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in my-auto">
-                <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
-                    <h2 className="text-xl font-bold text-stone-900">{currentProduct.name ? 'Editar Producto' : 'Nuevo Producto'}</h2>
-                    <button onClick={() => setIsProductModalOpen(false)} className="text-stone-400 hover:text-stone-900"><AdminIcons.X /></button>
-                </div>
-                
-                <form onSubmit={handleSaveProduct} className="p-6 md:p-8 overflow-y-auto space-y-6">
-                    <div className="flex flex-col md:flex-row gap-6">
-                        {/* Carga de Imagen */}
-                        <div className="w-full md:w-1/3">
-                            <label className="block text-sm font-bold text-stone-700 mb-2">Imagen</label>
-                            <div className="aspect-square rounded-2xl bg-stone-100 border-2 border-dashed border-stone-300 flex flex-col items-center justify-center overflow-hidden relative group hover:border-amber-500 transition-colors">
-                                {currentProduct.image ? (
-                                    <img src={currentProduct.image} className="w-full h-full object-cover" alt="Preview" />
-                                ) : (
-                                    <div className="text-stone-400 text-center p-4">
-                                        <AdminIcons.Upload />
-                                        <span className="text-xs block mt-2">Subir Foto</span>
-                                    </div>
-                                )}
-                                <input 
-                                    type="file" 
-                                    accept="image/*"
-                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                    onChange={(e) => handleImageChange(e, setCurrentProduct)}
-                                />
-                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                    <span className="text-white text-xs font-bold">Cambiar</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Campos de Texto */}
-                        <div className="w-full md:w-2/3 space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Nombre</label>
-                                <input 
-                                    required
-                                    type="text" 
-                                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none"
-                                    value={currentProduct.name}
-                                    onChange={(e) => setCurrentProduct({...currentProduct, name: e.target.value})}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Precio ($)</label>
-                                    <input 
-                                        required
-                                        type="number" 
-                                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none"
-                                        value={currentProduct.price}
-                                        onChange={(e) => setCurrentProduct({...currentProduct, price: e.target.value})}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-stone-700 mb-1">Categoría</label>
-                                    <select 
-                                        className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none"
-                                        value={currentProduct.category}
-                                        onChange={(e) => setCurrentProduct({...currentProduct, category: e.target.value})}
-                                    >
-                                        {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-                                    </select>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-bold text-stone-700 mb-1">Descripción</label>
-                                <textarea 
-                                    rows="3"
-                                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none"
-                                    value={currentProduct.description}
-                                    onChange={(e) => setCurrentProduct({...currentProduct, description: e.target.value})}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="pt-4 border-t border-stone-100 flex gap-4">
-                        <button type="button" onClick={() => setIsProductModalOpen(false)} className="flex-1 py-3 font-bold text-stone-500 hover:bg-stone-100 rounded-xl transition-colors">Cancelar</button>
-                        <button type="submit" className="flex-1 py-3 bg-stone-900 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg">Guardar</button>
-                    </div>
-                </form>
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto">
+            <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+              <h2 className="text-xl font-bold text-stone-900">{currentProduct.id ? 'Editar Producto' : 'Nuevo Producto'}</h2>
+              <button onClick={() => setIsProductModalOpen(false)} className="text-stone-400 hover:text-stone-900"><Icon.X /></button>
             </div>
+            <form onSubmit={handleSaveProduct} className="p-6 md:p-8 overflow-y-auto space-y-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="w-full md:w-1/3">
+                  <label className="block text-sm font-bold text-stone-700 mb-2">Imagen</label>
+                  <div className="aspect-square rounded-2xl bg-stone-100 border-2 border-dashed border-stone-300 flex flex-col items-center justify-center overflow-hidden relative group hover:border-amber-500 transition-colors">
+                    {currentProduct.image ? <img src={currentProduct.image} className="w-full h-full object-cover" alt="Preview" /> : <div className="text-stone-400 text-center p-4"><Icon.Upload /><span className="text-xs block mt-2">Subir Foto</span></div>}
+                    <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={handleImageChange} />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"><span className="text-white text-xs font-bold">Cambiar</span></div>
+                  </div>
+                </div>
+                <div className="w-full md:w-2/3 space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-stone-700 mb-1">Nombre</label>
+                    <input required type="text" className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none" value={currentProduct.name} onChange={(e) => setCurrentProduct({ ...currentProduct, name: e.target.value })} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-bold text-stone-700 mb-1">Precio ($)</label>
+                      <input required type="number" className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none" value={currentProduct.price} onChange={(e) => setCurrentProduct({ ...currentProduct, price: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-stone-700 mb-1">Categoría</label>
+                      <select className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none" value={currentProduct.category} onChange={(e) => setCurrentProduct({ ...currentProduct, category: e.target.value })}>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-stone-700 mb-1">Descripción</label>
+                    <textarea rows="3" className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none" value={currentProduct.description} onChange={(e) => setCurrentProduct({ ...currentProduct, description: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+              <div className="pt-4 border-t border-stone-100 flex gap-4">
+                <button type="button" onClick={() => setIsProductModalOpen(false)} className="flex-1 py-3 font-bold text-stone-500 hover:bg-stone-100 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" disabled={isSaving} className="flex-1 py-3 bg-stone-900 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg flex items-center justify-center gap-2">
+                  {isSaving ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 'Guardar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL CATEGORÍA ===== */}
+      {isCategoryModalOpen && currentCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+            <div className="p-6 border-b border-stone-100 flex justify-between items-center bg-stone-50">
+              <h2 className="text-xl font-bold text-stone-900">{currentCategory.id ? 'Editar Categoría' : 'Nueva Categoría'}</h2>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="text-stone-400 hover:text-stone-900"><Icon.X /></button>
+            </div>
+            <form onSubmit={handleSaveCategory} className="p-6 space-y-5">
+
+              {/* Nombre */}
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-1">Nombre de la categoría</label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Ej: Hamburguesas"
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none"
+                  value={currentCategory.label}
+                  onChange={(e) => setCurrentCategory({ ...currentCategory, label: e.target.value })}
+                />
+              </div>
+
+              {/* Icono */}
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-2">Ícono representativo</label>
+                <div className="grid grid-cols-5 gap-2">
+                  {CATEGORY_ICONS.map(ic => (
+                    <button
+                      key={ic.key}
+                      type="button"
+                      onClick={() => setCurrentCategory({ ...currentCategory, icon: ic.key })}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${currentCategory.icon === ic.key ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-stone-200 bg-stone-50 text-stone-500 hover:border-amber-300'}`}
+                      title={ic.label}
+                    >
+                      <ic.svg />
+                      <span className="text-[9px] font-bold">{ic.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Imagen */}
+              <div>
+                <label className="block text-sm font-bold text-stone-700 mb-2">Imagen de portada</label>
+                <div className="relative h-32 rounded-xl bg-stone-100 border-2 border-dashed border-stone-300 overflow-hidden group hover:border-amber-500 transition-colors flex items-center justify-center">
+                  {currentCategory.image ? (
+                    <img src={currentCategory.image} className="w-full h-full object-cover" alt="preview" />
+                  ) : (
+                    <div className="text-stone-400 text-center">
+                      <Icon.Image />
+                      <p className="text-xs mt-1">Subir imagen</p>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    onChange={(e) => {
+                      if (e.target.files[0]) {
+                        setCatImageFile(e.target.files[0]);
+                        setCurrentCategory({ ...currentCategory, image: URL.createObjectURL(e.target.files[0]) });
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    <span className="text-white text-xs font-bold">Cambiar imagen</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-2">
+                <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="flex-1 py-3 font-bold text-stone-500 hover:bg-stone-100 rounded-xl transition-colors">Cancelar</button>
+                <button type="submit" disabled={isSavingCat} className="flex-1 py-3 bg-stone-900 text-white font-bold rounded-xl hover:bg-amber-600 transition-colors shadow-lg flex items-center justify-center gap-2">
+                  {isSavingCat ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <><Icon.Check /> Guardar</>}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
