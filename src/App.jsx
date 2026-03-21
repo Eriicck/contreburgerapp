@@ -753,7 +753,7 @@ function StorePage({ setView }) {
                       <div className="space-y-3">
                           <label className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${checkoutData.paymentMethod === 'mercadopago' ? 'border-amber-600 bg-amber-50' : 'border-stone-200'}`}>
                               <input type="radio" name="payment" className="accent-amber-600 w-5 h-5" onChange={() => setCheckoutData({...checkoutData, paymentMethod: 'mercadopago'})} />
-                              <span className="font-bold text-stone-800">MercadoPago (Link / QR)</span>
+                              <span className="font-bold text-stone-800">MercadoPago</span>
                           </label>
                           <label className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${checkoutData.paymentMethod === 'efectivo' ? 'border-amber-600 bg-amber-50' : 'border-stone-200'}`}>
                               <input type="radio" name="payment" className="accent-amber-600 w-5 h-5" onChange={() => setCheckoutData({...checkoutData, paymentMethod: 'efectivo'})} />
