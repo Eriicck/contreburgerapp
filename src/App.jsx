@@ -668,8 +668,8 @@ function StorePage({ setView }) {
               <h2 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tighter drop-shadow-lg">SÍGUENOS EN <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600">REDES SOCIALES</span></h2>
               <p className="text-stone-300 text-xl mb-12 max-w-2xl mx-auto drop-shadow-md font-medium">Participa en nuestros sorteos, mira el detrás de escena de nuestras cocinas y comparte tu experiencia Contreburger.</p>
               <div className="flex flex-col md:flex-row gap-6 justify-center items-center">
-                  <a href="#" className="flex items-center gap-3 px-8 py-4 bg-white text-stone-900 rounded-full font-bold text-lg hover:bg-amber-500 hover:text-white transition-all transform hover:-translate-y-1 shadow-xl w-full md:w-auto justify-center"><Icons.Instagram /> @contreburger</a>
-                  <a href="https://www.instagram.com/contreburger" className="flex items-center gap-3 px-8 py-4 bg-black text-white border border-stone-800 rounded-full font-bold text-lg hover:bg-stone-800 transition-all transform hover:-translate-y-1 shadow-xl w-full md:w-auto justify-center"><Icons.TikTok /> @contreburger</a>
+                  <a href="https://www.instagram.com/contreburger" className="flex items-center gap-3 px-8 py-4 bg-white text-stone-900 rounded-full font-bold text-lg hover:bg-amber-500 hover:text-white transition-all transform hover:-translate-y-1 shadow-xl w-full md:w-auto justify-center"><Icons.Instagram /> @contreburger</a>
+                  <a href="#" className="flex items-center gap-3 px-8 py-4 bg-black text-white border border-stone-800 rounded-full font-bold text-lg hover:bg-stone-800 transition-all transform hover:-translate-y-1 shadow-xl w-full md:w-auto justify-center"><Icons.TikTok /> @contreburger</a>
               </div>
           </div>
           <div className="relative z-20 w-full bg-black/80 backdrop-blur-md py-4 text-center border-t border-stone-800">
