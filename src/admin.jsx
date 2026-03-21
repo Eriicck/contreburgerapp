@@ -198,19 +198,6 @@ export default function Admin() {
     } catch (e) { alert("Error: " + e.message); }
   };
 
-  // --- TOGGLE DISPONIBILIDAD ---
-  const handleToggleProduct = async (product) => {
-    try {
-      await updateDoc(doc(db, "products", product.id), { available: !product.available });
-    } catch (e) { alert("Error: " + e.message); }
-  };
-
-  const handleToggleCategory = async (cat) => {
-    try {
-      await updateDoc(doc(db, "categories", cat.id), { available: !cat.available });
-    } catch (e) { alert("Error: " + e.message); }
-  };
-
   // --- LOGOUT ---
   const handleLogout = async () => {
     if (window.confirm("¿Cerrar sesión?")) {
@@ -218,6 +205,24 @@ export default function Admin() {
       localStorage.removeItem('contre_auth');
       navigate('/login');
     }
+  };
+
+
+  // Toggle switch helper
+  const Switch = ({ active, onChange, colorOn = 'bg-red-400', label }) => (
+    <div className="flex flex-col items-center gap-1">
+      <button type="button" onClick={onChange}
+        className={"relative inline-flex h-5 w-10 items-center rounded-full transition-colors " + (active ? colorOn : 'bg-stone-200')}>
+        <span className={"inline-block h-3.5 w-3.5 rounded-full bg-white shadow transition-transform " + (active ? 'translate-x-5' : 'translate-x-1')} />
+      </button>
+      <span className="text-[9px] font-bold text-stone-400 uppercase leading-none">{label}</span>
+    </div>
+  );
+
+  // Toggle field in Firebase
+  const toggleField = async (collection_, id, field, currentVal) => {
+    try { await updateDoc(doc(db, collection_, id), { [field]: !currentVal }); }
+    catch (e) { alert("Error: " + e.message); }
   };
 
   // --- FILTROS Y PAGINACIÓN ---
@@ -368,7 +373,8 @@ export default function Admin() {
                           <th className="px-6 py-4 font-bold">Producto</th>
                           <th className="px-6 py-4 font-bold">Categoría</th>
                           <th className="px-6 py-4 font-bold">Precio</th>
-                          <th className="px-6 py-4 font-bold text-center">Stock</th>
+                          <th className="px-6 py-4 font-bold text-center">Sin stock</th>
+                          <th className="px-6 py-4 font-bold text-center">Próx.</th>
                           <th className="px-6 py-4 font-bold text-right">Acciones</th>
                         </tr>
                       </thead>
@@ -392,13 +398,10 @@ export default function Admin() {
                             </td>
                             <td className="px-6 py-4 font-bold text-stone-900">${product.price?.toLocaleString('es-AR')}</td>
                             <td className="px-6 py-4 text-center">
-                              <button
-                                onClick={() => handleToggleProduct(product)}
-                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${product.available !== false ? 'bg-green-500' : 'bg-stone-300'}`}
-                                title={product.available !== false ? 'Disponible' : 'Sin stock'}
-                              >
-                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${product.available !== false ? 'translate-x-6' : 'translate-x-1'}`} />
-                              </button>
+                              <Switch active={!!product.outOfStock} onChange={() => toggleField('products', product.id, 'outOfStock', product.outOfStock)} colorOn="bg-red-400" label="Sin stock" />
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <Switch active={!!product.comingSoon} onChange={() => toggleField('products', product.id, 'comingSoon', product.comingSoon)} colorOn="bg-amber-400" label="Próx." />
                             </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex justify-end gap-2">
@@ -425,12 +428,8 @@ export default function Admin() {
                             <div className="flex justify-between items-center mt-2">
                               <span className="text-[10px] bg-amber-50 px-2 py-1 rounded text-amber-700 font-bold border border-amber-100">{getCategoryLabel(product.category)}</span>
                               <div className="flex gap-2 items-center">
-                                <button
-                                  onClick={() => handleToggleProduct(product)}
-                                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${product.available !== false ? 'bg-green-500' : 'bg-stone-300'}`}
-                                >
-                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${product.available !== false ? 'translate-x-6' : 'translate-x-1'}`} />
-                                </button>
+                                <Switch active={!!product.outOfStock} onChange={() => toggleField('products', product.id, 'outOfStock', product.outOfStock)} colorOn="bg-red-400" label="Stock" />
+                                <Switch active={!!product.comingSoon} onChange={() => toggleField('products', product.id, 'comingSoon', product.comingSoon)} colorOn="bg-amber-400" label="Próx." />
                                 <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-100 text-stone-600 rounded-lg"><Icon.Edit /></button>
                                 <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-red-50 text-red-500 rounded-lg"><Icon.Trash /></button>
                               </div>
@@ -507,17 +506,10 @@ export default function Admin() {
 
                       {/* Footer de la card */}
                       <div className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleToggleCategory(cat)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${cat.available !== false ? 'bg-green-500' : 'bg-amber-400'}`}
-                            title={cat.available !== false ? 'Activa' : 'Próximamente'}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${cat.available !== false ? 'translate-x-6' : 'translate-x-1'}`} />
-                          </button>
-                          <span className={`text-xs font-bold ${cat.available !== false ? 'text-green-600' : 'text-amber-600'}`}>
-                            {cat.available !== false ? 'Activa' : 'Próximamente'}
-                          </span>
+                        <div className="flex items-center gap-3">
+                          <Switch active={!!cat.outOfStock} onChange={() => toggleField('categories', cat.id, 'outOfStock', cat.outOfStock)} colorOn="bg-red-400" label="Sin stock" />
+                          <Switch active={!!cat.comingSoon} onChange={() => toggleField('categories', cat.id, 'comingSoon', cat.comingSoon)} colorOn="bg-amber-400" label="Próx." />
+                          <span className="text-xs text-stone-400 font-medium"><span className="font-bold text-stone-700">{productCount}</span> prod.</span>
                         </div>
                         <div className="flex gap-2">
                           <button
