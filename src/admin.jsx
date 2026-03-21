@@ -198,6 +198,19 @@ export default function Admin() {
     } catch (e) { alert("Error: " + e.message); }
   };
 
+  // --- TOGGLE DISPONIBILIDAD ---
+  const handleToggleProduct = async (product) => {
+    try {
+      await updateDoc(doc(db, "products", product.id), { available: !product.available });
+    } catch (e) { alert("Error: " + e.message); }
+  };
+
+  const handleToggleCategory = async (cat) => {
+    try {
+      await updateDoc(doc(db, "categories", cat.id), { available: !cat.available });
+    } catch (e) { alert("Error: " + e.message); }
+  };
+
   // --- LOGOUT ---
   const handleLogout = async () => {
     if (window.confirm("¿Cerrar sesión?")) {
@@ -355,6 +368,7 @@ export default function Admin() {
                           <th className="px-6 py-4 font-bold">Producto</th>
                           <th className="px-6 py-4 font-bold">Categoría</th>
                           <th className="px-6 py-4 font-bold">Precio</th>
+                          <th className="px-6 py-4 font-bold text-center">Stock</th>
                           <th className="px-6 py-4 font-bold text-right">Acciones</th>
                         </tr>
                       </thead>
@@ -377,6 +391,15 @@ export default function Admin() {
                               </span>
                             </td>
                             <td className="px-6 py-4 font-bold text-stone-900">${product.price?.toLocaleString('es-AR')}</td>
+                            <td className="px-6 py-4 text-center">
+                              <button
+                                onClick={() => handleToggleProduct(product)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${product.available !== false ? 'bg-green-500' : 'bg-stone-300'}`}
+                                title={product.available !== false ? 'Disponible' : 'Sin stock'}
+                              >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${product.available !== false ? 'translate-x-6' : 'translate-x-1'}`} />
+                              </button>
+                            </td>
                             <td className="px-6 py-4 text-right">
                               <div className="flex justify-end gap-2">
                                 <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-50 hover:bg-amber-100 text-stone-500 hover:text-amber-700 rounded-lg transition-colors"><Icon.Edit /></button>
@@ -401,7 +424,13 @@ export default function Admin() {
                             <p className="text-xs text-stone-500 line-clamp-2 mb-2">{product.description}</p>
                             <div className="flex justify-between items-center mt-2">
                               <span className="text-[10px] bg-amber-50 px-2 py-1 rounded text-amber-700 font-bold border border-amber-100">{getCategoryLabel(product.category)}</span>
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 items-center">
+                                <button
+                                  onClick={() => handleToggleProduct(product)}
+                                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${product.available !== false ? 'bg-green-500' : 'bg-stone-300'}`}
+                                >
+                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${product.available !== false ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
                                 <button onClick={() => handleEditProduct(product)} className="p-2 bg-stone-100 text-stone-600 rounded-lg"><Icon.Edit /></button>
                                 <button onClick={() => handleDeleteProduct(product.id)} className="p-2 bg-red-50 text-red-500 rounded-lg"><Icon.Trash /></button>
                               </div>
@@ -478,9 +507,18 @@ export default function Admin() {
 
                       {/* Footer de la card */}
                       <div className="p-4 flex items-center justify-between">
-                        <span className="text-sm text-stone-500 font-medium">
-                          <span className="font-bold text-stone-800">{productCount}</span> producto{productCount !== 1 ? 's' : ''}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleCategory(cat)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${cat.available !== false ? 'bg-green-500' : 'bg-amber-400'}`}
+                            title={cat.available !== false ? 'Activa' : 'Próximamente'}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${cat.available !== false ? 'translate-x-6' : 'translate-x-1'}`} />
+                          </button>
+                          <span className={`text-xs font-bold ${cat.available !== false ? 'text-green-600' : 'text-amber-600'}`}>
+                            {cat.available !== false ? 'Activa' : 'Próximamente'}
+                          </span>
+                        </div>
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleEditCategory(cat)}
