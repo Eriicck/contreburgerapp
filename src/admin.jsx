@@ -22,6 +22,8 @@ const Icon = {
   ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
   ChevronRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>,
   X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+  ChevronUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
+  ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
   Filter: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
   Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
   Layers: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>,
@@ -94,7 +96,7 @@ export default function Admin() {
         ];
         defaults.forEach(cat => addDoc(collection(db, "categories"), cat));
       } else {
-        setCategories(cats);
+        setCategories(cats.sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
       }
     });
 
@@ -223,6 +225,18 @@ export default function Admin() {
   const toggleField = async (collection_, id, field, currentVal) => {
     try { await updateDoc(doc(db, collection_, id), { [field]: !currentVal }); }
     catch (e) { alert("Error: " + e.message); }
+  };
+
+  // --- REORDENAR CATEGORÍAS ---
+  const handleMoveCategory = async (index, direction) => {
+    const sorted = [...categories];
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= sorted.length) return;
+    // Swap order values
+    const updates = [];
+    updates.push(updateDoc(doc(db, "categories", sorted[index].id), { order: newIndex }));
+    updates.push(updateDoc(doc(db, "categories", sorted[newIndex].id), { order: index }));
+    try { await Promise.all(updates); } catch (e) { alert("Error: " + e.message); }
   };
 
   // --- FILTROS Y PAGINACIÓN ---
@@ -496,6 +510,22 @@ export default function Admin() {
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                        {/* Order arrows */}
+                        <div className="absolute top-2 right-2 flex flex-col gap-1">
+                          <button
+                            onClick={() => handleMoveCategory(categories.indexOf(cat), -1)}
+                            disabled={categories.indexOf(cat) === 0}
+                            className="w-7 h-7 bg-black/50 hover:bg-amber-500 text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                          ><Icon.ChevronUp /></button>
+                          <button
+                            onClick={() => handleMoveCategory(categories.indexOf(cat), 1)}
+                            disabled={categories.indexOf(cat) === categories.length - 1}
+                            className="w-7 h-7 bg-black/50 hover:bg-amber-500 text-white rounded-lg flex items-center justify-center transition-colors disabled:opacity-30"
+                          ><Icon.ChevronDown /></button>
+                        </div>
+                        <div className="absolute top-2 left-2 w-6 h-6 bg-black/60 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                          {categories.indexOf(cat) + 1}
+                        </div>
                         <div className="absolute bottom-3 left-3 flex items-center gap-2">
                           <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-white shadow-lg">
                             {getCategoryIcon(cat.icon)}
