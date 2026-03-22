@@ -633,14 +633,14 @@ function StorePage({ setView }) {
 
           <div className="relative z-10 max-w-7xl mx-auto w-full h-full flex flex-col justify-center">
             <h2 className="text-4xl md:text-5xl font-bold text-white text-center mb-12 uppercase tracking-tight">¿Qué te provoca <span className="text-amber-500">hoy?</span></h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 md:h-[55vh]">
               {categories.map((cat) => {
                 const isOutOfStock = cat.outOfStock === true;
                 const isComingSoon = cat.comingSoon === true;
                 const isUnavailable = isOutOfStock || isComingSoon;
                 return (
                   <button key={cat.id} onClick={() => !isUnavailable && handleCategorySelect(cat.id)}
-                    className={`group relative h-36 sm:h-44 md:h-52 rounded-2xl overflow-hidden border shadow-xl transition-all duration-300 focus:outline-none
+                    className={`group relative h-40 md:h-full rounded-2xl overflow-hidden border shadow-2xl transition-all duration-300 focus:outline-none
                       ${isUnavailable ? 'border-stone-700 cursor-default' : 'border-stone-700 hover:scale-[1.03] hover:border-amber-500 hover:z-10 focus:ring-2 focus:ring-amber-500/50'}`}>
                     <img src={cat.image} alt={cat.label}
                       className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 opacity-60
