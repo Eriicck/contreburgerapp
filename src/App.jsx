@@ -433,9 +433,7 @@ function ProductCard({ product, isMobile, addToCart }) {
           className={`w-full h-full object-cover transition-transform duration-700
             ${isUnavailable ? 'brightness-75' : 'group-hover:scale-110'}
             ${isOutOfStock ? 'grayscale' : ''}`} />
-        {!isUnavailable && (
-          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur text-stone-900 text-xs font-bold px-2 py-1 rounded-md shadow-sm">${product.price.toLocaleString('es-AR')}</div>
-        )}
+
         {isOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="bg-black/60 backdrop-blur-[2px] w-full py-2.5 text-center transform -rotate-0">
@@ -460,7 +458,13 @@ function ProductCard({ product, isMobile, addToCart }) {
         ) : isComingSoon ? (
           <div className="w-full bg-amber-50 text-amber-600 font-bold py-2 rounded-lg text-sm text-center border border-amber-200 cursor-not-allowed select-none">MUY PRONTO ✨</div>
         ) : (
-          <button onClick={() => addToCart(product)} className="w-full bg-stone-100 text-stone-900 font-bold py-2 rounded-lg hover:bg-stone-900 hover:text-white transition-colors text-sm active:scale-95 border border-stone-200 hover:border-stone-900">AGREGAR +</button>
+          <div className="flex items-center justify-between bg-stone-100 rounded-lg overflow-hidden border border-stone-200">
+            <span className="text-sm font-extrabold text-stone-900 px-3">${product.price.toLocaleString('es-AR')}</span>
+            <button onClick={() => addToCart(product)} className="bg-stone-900 text-white font-bold py-2 px-4 text-xs flex items-center gap-1.5 hover:bg-amber-600 transition-colors active:scale-95 whitespace-nowrap">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Agregar
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -835,8 +839,14 @@ function StorePage({ setView }) {
                   <section>
                       <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wide mb-3">1. Tipo de Entrega</h3>
                       <div className="grid grid-cols-2 gap-3">
-                          <button onClick={() => setCheckoutData({...checkoutData, type: 'delivery'})} className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${checkoutData.type === 'delivery' ? 'border-amber-600 bg-amber-50 text-amber-700' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}><Icons.Bike /><span className="font-bold">Delivery</span></button>
-                          <button onClick={() => setCheckoutData({...checkoutData, type: 'pickup'})} className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${checkoutData.type === 'pickup' ? 'border-amber-600 bg-amber-50 text-amber-700' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}><Icons.Store /><span className="font-bold">Retiro</span></button>
+                          <button onClick={() => setCheckoutData({...checkoutData, type: 'delivery'})} className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${checkoutData.type === 'delivery' ? 'border-amber-600 bg-amber-50' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}>
+                            <span style={{fontSize:'32px',lineHeight:1}}>🛵</span>
+                            <span className={`font-bold text-sm ${checkoutData.type === 'delivery' ? 'text-amber-700' : ''}`}>Delivery</span>
+                          </button>
+                          <button onClick={() => setCheckoutData({...checkoutData, type: 'pickup'})} className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${checkoutData.type === 'pickup' ? 'border-amber-600 bg-amber-50' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}>
+                            <span style={{fontSize:'32px',lineHeight:1}}>🏪</span>
+                            <span className={`font-bold text-sm ${checkoutData.type === 'pickup' ? 'text-amber-700' : ''}`}>Retiro en local</span>
+                          </button>
                       </div>
                   </section>
                   <section className="space-y-3">

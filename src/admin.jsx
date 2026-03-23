@@ -733,6 +733,13 @@ export default function Admin() {
                     <span className="text-white text-xs font-bold">Cambiar imagen</span>
                   </div>
                 </div>
+                <input
+                  type="text"
+                  placeholder="O pegá un link de imagen (https://...)"
+                  className="w-full text-xs p-2.5 mt-2 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none text-stone-600 placeholder:text-stone-400"
+                  value={catImageFile ? '' : (currentCategory.image || '')}
+                  onChange={(e) => { setCatImageFile(null); setCurrentCategory({ ...currentCategory, image: e.target.value }); }}
+                />
               </div>
 
               <div className="flex gap-4 pt-2">
