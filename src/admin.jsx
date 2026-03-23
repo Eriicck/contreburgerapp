@@ -24,23 +24,28 @@ const Icon = {
   X: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
   ChevronUp: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m18 15-6-6-6 6"/></svg>,
   ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>,
+  Eye: () => <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
+  EyeOff: () => <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.09"/><line x1="2" x2="22" y1="2" y2="22"/></svg>,
   Filter: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>,
   Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
   Layers: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg>,
   AlertCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
 };
 
-// Iconos de categoría para elegir (emojis visuales mapeados a SVG representativos)
+// Íconos de categoría con emojis gastronómicos
 const CATEGORY_ICONS = [
-  { key: 'burger', label: 'Hamburguesa', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11.1 2.2a2 2 0 0 0-1.8 1.1L7 9h10l-2.3-5.7a2 2 0 0 0-1.8-1.1h-1.8z"/><path d="m3 11 1.7 6.9a2 2 0 0 0 2 1.5h10.6a2 2 0 0 0 2-1.5L21 11H3z"/></svg> },
-  { key: 'pizza', label: 'Pizza', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 11h.01"/><path d="M11 15h.01"/><path d="M16 16h.01"/><path d="m2 16 20 6-6-20A20 20 0 0 0 2 16"/><path d="M5.71 17.11a17.04 17.04 0 0 1 11.4-11.4"/></svg> },
-  { key: 'coffee', label: 'Bebida', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></svg> },
-  { key: 'cake', label: 'Postre', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2 1 2 1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/><path d="M7 4h.01"/><path d="M12 4h.01"/><path d="M17 4h.01"/></svg> },
-  { key: 'salad', label: 'Ensalada', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9Z"/><path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-3.19 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.1"/><path d="m13 12 4-4"/><path d="M10.9 7.25A3.99 3.99 0 0 0 4 10c0 .73.2 1.41.54 2"/></svg> },
-  { key: 'utensils', label: 'Comida', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></svg> },
-  { key: 'star', label: 'Especial', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> },
-  { key: 'flame', label: 'Picante', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg> },
-  { key: 'package', label: 'Combo', svg: () => <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 9.4 7.55 4.24"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" x2="12" y1="22" y2="12"/></svg> },
+  { key: 'burger',    label: 'Hamburguesa',  emoji: '🍔' },
+  { key: 'empanada',  label: 'Empanada',     emoji: '🥟' },
+  { key: 'hotdog',    label: 'Pancho',       emoji: '🌭' },
+  { key: 'tequeno',   label: 'Tequeño',      emoji: '🧀' },
+  { key: 'drink',     label: 'Bebida',       emoji: '🥤' },
+  { key: 'dessert',   label: 'Postre',       emoji: '🍰' },
+  { key: 'pizza',     label: 'Pizza',        emoji: '🍕' },
+  { key: 'salad',     label: 'Ensalada',     emoji: '🥗' },
+  { key: 'special',   label: 'Especial',     emoji: '⭐' },
+  { key: 'spicy',     label: 'Picante',      emoji: '🌶️' },
+  { key: 'combo',     label: 'Combo',        emoji: '🎁' },
+  { key: 'snack',     label: 'Snack',        emoji: '🍟' },
 ];
 
 export default function Admin() {
@@ -251,7 +256,7 @@ export default function Admin() {
   const getCategoryLabel = (catId) => categories.find(c => c.id === catId)?.label || catId;
   const getCategoryIcon = (iconKey) => {
     const found = CATEGORY_ICONS.find(i => i.key === iconKey);
-    return found ? <found.svg /> : <Icon.Tag />;
+    return found ? <span style={{fontSize: '16px', lineHeight: 1}}>{found.emoji}</span> : <Icon.Tag />;
   };
 
   // --- SIDEBAR ITEM ---
@@ -535,24 +540,33 @@ export default function Admin() {
                       </div>
 
                       {/* Footer de la card */}
-                      <div className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Switch active={!!cat.outOfStock} onChange={() => toggleField('categories', cat.id, 'outOfStock', cat.outOfStock)} colorOn="bg-red-400" label="Sin stock" />
+                      <div className="p-3 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Switch active={!!cat.outOfStock} onChange={() => toggleField('categories', cat.id, 'outOfStock', cat.outOfStock)} colorOn="bg-red-400" label="Stock" />
                           <Switch active={!!cat.comingSoon} onChange={() => toggleField('categories', cat.id, 'comingSoon', cat.comingSoon)} colorOn="bg-amber-400" label="Próx." />
                           <span className="text-xs text-stone-400 font-medium"><span className="font-bold text-stone-700">{productCount}</span> prod.</span>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                           <button
                             onClick={() => handleEditCategory(cat)}
-                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-stone-100 hover:bg-amber-100 text-stone-600 hover:text-amber-700 rounded-lg transition-colors"
+                            title="Editar"
+                            className="w-8 h-8 flex items-center justify-center bg-stone-100 hover:bg-amber-100 text-stone-500 hover:text-amber-700 rounded-lg transition-colors"
                           >
-                            <Icon.Edit /> Editar
+                            <Icon.Edit />
+                          </button>
+                          <button
+                            onClick={() => toggleField('categories', cat.id, 'hidden', cat.hidden)}
+                            title={cat.hidden ? 'Mostrar categoría' : 'Ocultar categoría'}
+                            className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors ${cat.hidden ? 'bg-stone-800 text-white hover:bg-stone-700' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'}`}
+                          >
+                            {cat.hidden ? <Icon.EyeOff /> : <Icon.Eye />}
                           </button>
                           <button
                             onClick={() => handleDeleteCategory(cat)}
-                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-stone-100 hover:bg-red-100 text-stone-600 hover:text-red-600 rounded-lg transition-colors"
+                            title="Eliminar"
+                            className="w-8 h-8 flex items-center justify-center bg-stone-100 hover:bg-red-100 text-stone-500 hover:text-red-600 rounded-lg transition-colors"
                           >
-                            <Icon.Trash /> Eliminar
+                            <Icon.Trash />
                           </button>
                         </div>
                       </div>
@@ -676,17 +690,17 @@ export default function Admin() {
               {/* Icono */}
               <div>
                 <label className="block text-sm font-bold text-stone-700 mb-2">Ícono representativo</label>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   {CATEGORY_ICONS.map(ic => (
                     <button
                       key={ic.key}
                       type="button"
                       onClick={() => setCurrentCategory({ ...currentCategory, icon: ic.key })}
-                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${currentCategory.icon === ic.key ? 'border-amber-500 bg-amber-50 text-amber-600' : 'border-stone-200 bg-stone-50 text-stone-500 hover:border-amber-300'}`}
+                      className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition-all ${currentCategory.icon === ic.key ? 'border-amber-500 bg-amber-50' : 'border-stone-200 bg-stone-50 hover:border-amber-300'}`}
                       title={ic.label}
                     >
-                      <ic.svg />
-                      <span className="text-[9px] font-bold">{ic.label}</span>
+                      <span style={{fontSize: '22px', lineHeight: 1}}>{ic.emoji}</span>
+                      <span className="text-[9px] font-bold text-stone-500">{ic.label}</span>
                     </button>
                   ))}
                 </div>
@@ -695,7 +709,7 @@ export default function Admin() {
               {/* Imagen */}
               <div>
                 <label className="block text-sm font-bold text-stone-700 mb-2">Imagen de portada</label>
-                <div className="relative h-32 rounded-xl bg-stone-100 border-2 border-dashed border-stone-300 overflow-hidden group hover:border-amber-500 transition-colors flex items-center justify-center mb-2">
+                <div className="relative h-32 rounded-xl bg-stone-100 border-2 border-dashed border-stone-300 overflow-hidden group hover:border-amber-500 transition-colors flex items-center justify-center">
                   {currentCategory.image ? (
                     <img src={currentCategory.image} className="w-full h-full object-cover" alt="preview" />
                   ) : (
@@ -719,13 +733,6 @@ export default function Admin() {
                     <span className="text-white text-xs font-bold">Cambiar imagen</span>
                   </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="O pegá un link de imagen (https://...)"
-                  className="w-full text-xs p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:border-amber-500 focus:outline-none text-stone-600 placeholder:text-stone-400"
-                  value={catImageFile ? '' : (currentCategory.image || '')}
-                  onChange={(e) => { setCatImageFile(null); setCurrentCategory({ ...currentCategory, image: e.target.value }); }}
-                />
               </div>
 
               <div className="flex gap-4 pt-2">
