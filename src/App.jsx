@@ -29,7 +29,7 @@ const Icons = {
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
   Minus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/></svg>,
   Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
-  Bike: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0"/><path d="M15 17a3 3 0 1 0 6 0 3 3 0 0 0-6 0"/><path d="M9 17H6l-2-5h14l-1 5h-2"/><path d="M14 17V9l-5 3"/><path d="M10 9h4"/><path d="M12 5v4"/></svg>,
+  Bike: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm13 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M2 17h1.5"/><path d="M19 17h3"/><path d="M8 17h5.5"/><path d="M16.5 12H8L6 4H3"/><path d="M21 9h-7l-1 3h9l-1 5Z"/></svg>,
   Store: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>,
   ArrowRight: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>,
   ArrowLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>,
@@ -477,7 +477,6 @@ function StorePage({ setView }) {
   const [scrollY, setScrollY] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [orderSent, setOrderSent] = useState(false);
   const [currentHeaderIndex, setCurrentHeaderIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const menuRef = useRef(null);
@@ -494,7 +493,7 @@ function StorePage({ setView }) {
       setIsLoading(false);
     });
     const unsubCats = onSnapshot(collection(db, "categories"), (snap) => {
-      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
+      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => !c.hidden).sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
     });
     const unsubSett = onSnapshot(doc(db, "settings", "main_settings"), (d) => {
        if(d.exists()) setMarqueeText(d.data().marqueeText);
@@ -535,12 +534,8 @@ function StorePage({ setView }) {
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
-      return [...prev, { ...product, quantity: 1, note: '' }];
+      return [...prev, { ...product, quantity: 1 }];
     });
-  };
-
-  const updateNote = (id, note) => {
-    setCart(prev => prev.map(item => item.id === id ? { ...item, note } : item));
   };
 
   const updateQuantity = (id, delta) => {
@@ -548,6 +543,10 @@ function StorePage({ setView }) {
       if (item.id === id) return { ...item, quantity: Math.max(0, item.quantity + delta) };
       return item;
     }).filter(item => item.quantity > 0));
+  };
+
+  const updateNote = (id, note) => {
+    setCart(prev => prev.map(item => item.id === id ? { ...item, note } : item));
   };
 
   const cartTotal = useMemo(() => cart.reduce((total, item) => total + (item.price * item.quantity), 0), [cart]);
@@ -581,31 +580,24 @@ function StorePage({ setView }) {
     let message = `*HOLA CONTREBURGER! 🍔 QUIERO HACER UN PEDIDO*\n\n*MI PEDIDO:*\n`;
     cart.forEach(item => {
       message += `▪ ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})`;
-      if (item.note) message += ` _(${item.note})_`;
+      if (item.note && item.note.trim()) message += ` _(${item.note.trim()})_`;
       message += `\n`;
     });
     message += `\n*TOTAL: $${cartTotal.toLocaleString('es-AR')}*\n----------------------------\n`;
+    
     if (type === 'delivery') {
       message += `🛵 *DELIVERY*\n👤 *Nombre:* ${name}\n📍 *Dirección:* ${address} ${number}\n`;
       if (crossStreets) message += `🛣 *Entre calles:* ${crossStreets}\n`;
     } else {
       message += `🏃 *RETIRO EN EL LOCAL*\n👤 *Nombre:* ${name}\n`;
     }
+    
     message += `\n💳 *PAGO CON:* ${paymentMethod === 'mercadopago' ? 'MercadoPago' : 'Efectivo'}`;
     if (paymentMethod === 'efectivo' && type === 'delivery' && cashAmount) {
       message += `\n💵 *ABONO CON:* $${cashAmount} (Calcular vuelto)`;
     }
-    setOrderSent(true);
-    setTimeout(() => {
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
-      setTimeout(() => {
-        setOrderSent(false);
-        setIsCheckoutOpen(false);
-        setIsCartOpen(false);
-        setCart([]);
-        setCheckoutData({ type: 'delivery', paymentMethod: '', cashAmount: '', name: '', address: '', number: '', crossStreets: '' });
-      }, 2500);
-    }, 1500);
+
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
@@ -783,54 +775,50 @@ function StorePage({ setView }) {
               </div>
               <div className="p-6 overflow-y-auto flex-grow space-y-4">
                 {cart.map(item => (
-                  <div key={item.id} className="border-b border-stone-100 pb-4 last:border-0">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
+                  <div key={item.id} className="border-b border-stone-100 pb-3 last:border-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
                         <img src={item.image} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" alt={item.name} />
-                        <div>
-                          <h4 className="font-bold text-stone-900 text-sm leading-tight">{item.name}</h4>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="font-bold text-stone-900 text-sm">{item.name}</h4>
+                            {item.category === 'burgers' && <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200 whitespace-nowrap">🍟 Con papas</span>}
+                          </div>
                           <p className="text-sm text-amber-700 font-bold">${(item.price * item.quantity).toLocaleString('es-AR')}</p>
+                          {!item.note && (
+                            <button onClick={() => updateNote(item.id, ' ')} className="text-[11px] text-stone-400 hover:text-amber-600 transition-colors underline underline-offset-2">
+                              + Aclaración
+                            </button>
+                          )}
                         </div>
                       </div>
                       <QuantityControl quantity={item.quantity} size="sm" onIncrease={() => updateQuantity(item.id, 1)} onDecrease={() => updateQuantity(item.id, -1)} />
                     </div>
-                    <input
-                      type="text"
-                      maxLength={40}
-                      placeholder="Aclaración (ej: sin cebolla)"
-                      className="w-full text-xs p-2 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:border-amber-400 text-stone-600 placeholder:text-stone-400"
-                      value={item.note || ''}
-                      onChange={e => updateNote(item.id, e.target.value)}
-                    />
+                    {item.note && (
+                      <div className="flex items-center gap-2 mt-1 ml-1">
+                        <input
+                          autoFocus
+                          type="text"
+                          maxLength={40}
+                          placeholder="Ej: sin cebolla, extra salsa..."
+                          className="flex-1 text-xs p-2 bg-stone-50 border border-amber-300 rounded-lg focus:outline-none focus:border-amber-500 text-stone-700 placeholder:text-stone-400"
+                          value={item.note.trimStart()}
+                          onChange={e => updateNote(item.id, e.target.value)}
+                        />
+                        <button onClick={() => updateNote(item.id, null)} className="text-stone-400 hover:text-red-400 text-xs font-bold px-1 transition-colors">✕</button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {cart.length === 0 && <p className="text-center text-stone-500 py-8">El carrito está vacío :(</p>}
               </div>
               {cart.length > 0 && (
                 <div className="p-6 bg-stone-100 border-t border-stone-200">
-                  <div className="flex justify-between items-center mb-6"><span className="text-stone-500 font-medium">Total Estimado</span><span className="text-3xl font-extrabold text-stone-900">${cartTotal.toLocaleString('es-AR')}</span></div>
-                  <button onClick={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }} className="w-full bg-stone-900 text-white font-bold py-4 rounded-xl hover:bg-amber-600 transition-colors shadow-lg">CONTINUAR COMPRA</button>
+                  <div className="flex justify-between items-center mb-4"><span className="text-stone-500 font-medium">Total Estimado</span><span className="text-3xl font-extrabold text-stone-900">${cartTotal.toLocaleString('es-AR')}</span></div>
+                  <button onClick={() => { setIsCartOpen(false); setIsCheckoutOpen(true); }} className="w-full bg-stone-900 text-white font-bold py-4 rounded-xl hover:bg-amber-600 transition-colors shadow-lg mb-2">CONTINUAR COMPRA</button>
+                  <button onClick={() => setIsCartOpen(false)} className="w-full py-2.5 text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200">🛒 Seguir agregando</button>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* CONFIRMACIÓN PEDIDO ENVIADO */}
-        {orderSent && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-              </div>
-              <h3 className="text-2xl font-extrabold text-stone-900 mb-2">¡Pedido enviado! 🎉</h3>
-              <p className="text-stone-500 text-sm mb-1">Te estamos redirigiendo a WhatsApp</p>
-              <p className="text-stone-400 text-xs">Confirmá el mensaje para completar tu pedido</p>
-              <div className="mt-6 flex justify-center gap-1">
-                {[0,1,2].map(i => (
-                  <div key={i} className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{animationDelay: `${i * 0.15}s`}} />
-                ))}
-              </div>
             </div>
           </div>
         )}
@@ -888,17 +876,17 @@ function StorePage({ setView }) {
                   </section>
               </div>
               <div className="p-4 border-t border-stone-100 bg-stone-50 space-y-2">
-                  <button onClick={handleCheckout} disabled={!checkoutData.paymentMethod || !checkoutData.name || (checkoutData.type === 'delivery' && (!checkoutData.address || !checkoutData.number))} className="w-full bg-stone-900 text-white font-bold py-4 rounded-xl hover:bg-amber-600 transition-colors shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                      ENVIAR PEDIDO
+                <button onClick={handleCheckout} disabled={!checkoutData.paymentMethod || !checkoutData.name || (checkoutData.type === 'delivery' && (!checkoutData.address || !checkoutData.number))} className="w-full bg-stone-900 text-white font-bold py-4 rounded-xl hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                  ENVIAR PEDIDO
+                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }} className="flex-1 py-2.5 text-sm font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors">
+                    ← Volver
                   </button>
-                  <div className="flex gap-2">
-                    <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }} className="flex-1 py-2.5 text-sm font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors flex items-center justify-center gap-1">
-                      ← Volver
-                    </button>
-                    <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(false); }} className="flex-1 py-2.5 text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200">
-                      🛒 Seguir agregando
-                    </button>
-                  </div>
+                  <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(false); }} className="flex-1 py-2.5 text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200">
+                    🛒 Seguir agregando
+                  </button>
+                </div>
               </div>
             </div>
           </div>
