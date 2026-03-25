@@ -1072,7 +1072,7 @@ function StorePage({ setView }) {
 
         {/* SECCIÓN 4: FOOTER */}
         <footer className="relative h-screen bg-stone-900 flex flex-col justify-between overflow-hidden">
-          <div className="absolute inset-0" style={{ backgroundImage: `url('https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/footer%20contreburger%201.png?alt=media&token=5823de6d-6e79-4a5d-88bf-293f4467eef8')`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
+          <div className="absolute inset-0" style={{ backgroundImage: `url('https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/footer%20contreburger%201.jpg?alt=media&token=0a3fc829-1a4b-4b31-acc8-bac893392010')`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center flex-grow flex flex-col justify-center">
               <h2 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tighter drop-shadow-lg">SÍGUENOS EN <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600">REDES SOCIALES</span></h2>
               <p className="text-stone-300 text-xl mb-12 max-w-2xl mx-auto drop-shadow-md font-medium">Participa en nuestros sorteos, mira el detrás de escena de nuestras cocinas y comparte tu experiencia Contreburger.</p>
