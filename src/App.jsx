@@ -5,7 +5,176 @@ import { collection, onSnapshot, doc, addDoc, updateDoc, deleteDoc, setDoc } fro
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 
-// --- 2. CONSTANTES Y UTILIDADES ---
+// --- SPLASH SCREEN ---
+const SPLASH_PHRASES = [
+  "Las mejores hamburguesas de Moreno 🍔",
+  "Calidad que se siente en cada mordida ✨",
+  "Hecho con amor y mucho cheddar 🧀",
+  "Tu pedido, a un mensaje de distancia 🛵",
+  "Preparando algo rico para vos... 🔥",
+];
+
+function SplashScreen({ onFinish }) {
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+  const [fadingOut, setFadingOut] = useState(false);
+
+  useEffect(() => {
+    // Rotar frases cada 600ms
+    const phraseTimer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setPhraseIndex(prev => (prev + 1) % SPLASH_PHRASES.length);
+        setVisible(true);
+      }, 300);
+    }, 900);
+
+    // Empezar fade-out a los 2.6s y terminar a los 3s
+    const fadeTimer = setTimeout(() => setFadingOut(true), 2600);
+    const finishTimer = setTimeout(() => onFinish(), 3100);
+
+    return () => { clearInterval(phraseTimer); clearTimeout(fadeTimer); clearTimeout(finishTimer); };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black"
+      style={{
+        opacity: fadingOut ? 0 : 1,
+        transition: fadingOut ? 'opacity 0.5s ease-out' : 'none',
+      }}
+    >
+      <style>{`
+        @keyframes splashPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.04); opacity: 0.85; }
+        }
+        @keyframes splashGlow {
+          0%, 100% { text-shadow: 0 0 20px rgba(245,158,11,0.3); }
+          50% { text-shadow: 0 0 40px rgba(245,158,11,0.7), 0 0 80px rgba(245,158,11,0.3); }
+        }
+        @keyframes splashDot {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+          40% { transform: translateY(-6px); opacity: 1; }
+        }
+        @keyframes splashLine {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+      `}</style>
+
+      {/* Fondo con patrón sutil */}
+      <div className="absolute inset-0 opacity-5 pointer-events-none"
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")`, backgroundSize: '30px 30px' }}
+      />
+
+      {/* Logo */}
+      <div style={{ animation: 'splashPulse 2s ease-in-out infinite' }}>
+        <h1
+          className="text-5xl sm:text-7xl font-extrabold tracking-tight mb-2 select-none"
+          style={{ animation: 'splashGlow 2s ease-in-out infinite' }}
+        >
+          <span className="text-white">CONTRE</span>
+          <span className="text-amber-500">BURGER</span>
+        </h1>
+      </div>
+
+      {/* Línea decorativa animada */}
+      <div className="w-48 h-px bg-stone-800 mb-6 overflow-hidden rounded-full">
+        <div className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full"
+          style={{ animation: 'splashLine 2.6s ease-out forwards' }} />
+      </div>
+
+      {/* Frase rotante */}
+      <p
+        className="text-sm sm:text-base text-stone-300 font-medium tracking-wide text-center px-8 max-w-xs"
+        style={{
+          opacity: visible ? 1 : 0,
+          transform: visible ? 'translateY(0)' : 'translateY(6px)',
+          transition: 'opacity 0.3s ease, transform 0.3s ease',
+          minHeight: '1.5rem',
+        }}
+      >
+        {SPLASH_PHRASES[phraseIndex]}
+      </p>
+
+      {/* Dots animados */}
+      <div className="flex gap-2 mt-8">
+        {[0, 1, 2].map(i => (
+          <div
+            key={i}
+            className="w-1.5 h-1.5 rounded-full bg-amber-500"
+            style={{ animation: `splashDot 1.2s ease-in-out ${i * 0.2}s infinite` }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+// --- OVERLAY ENVIANDO PEDIDO ---
+function SendingOverlay() {
+  const [dots, setDots] = useState('');
+  const [bikePos, setBikePos] = useState(0);
+
+  useEffect(() => {
+    const dotsTimer = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 400);
+    const bikeTimer = setInterval(() => {
+      setBikePos(prev => (prev >= 100 ? 0 : prev + 2));
+    }, 30);
+    return () => { clearInterval(dotsTimer); clearInterval(bikeTimer); };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[9998] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm">
+      <style>{`
+        @keyframes bikeBounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
+
+      <div className="bg-stone-900 border border-stone-700 rounded-3xl px-10 py-10 flex flex-col items-center gap-6 shadow-2xl max-w-xs w-full mx-4">
+        {/* Pista con moto */}
+        <div className="w-full relative h-10 flex items-center">
+          <div className="absolute inset-x-0 bottom-1 h-px bg-stone-700" />
+          <div
+            className="absolute"
+            style={{
+              left: `${bikePos}%`,
+              transform: 'translateX(-50%)',
+              animation: 'bikeBounce 0.4s ease-in-out infinite',
+              transition: 'left 0.03s linear',
+              fontSize: '28px',
+              lineHeight: 1,
+            }}
+          >
+            🛵
+          </div>
+        </div>
+
+        {/* Texto */}
+        <div className="text-center">
+          <p className="text-white font-extrabold text-lg tracking-wide">
+            Enviando tu pedido{dots}
+          </p>
+          <p className="text-stone-400 text-sm mt-1">Te redirigimos a WhatsApp</p>
+        </div>
+
+        {/* Barra de progreso */}
+        <div className="w-full h-1.5 bg-stone-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full"
+            style={{ animation: 'splashLine 1.8s ease-out forwards' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 const WHATSAPP_NUMBER = "5491124952866";
 
 const HEADER_IMAGES = [
@@ -521,7 +690,12 @@ function ProductCard({ product, isMobile, addToCart }) {
 
 // --- 5. COMPONENTE TIENDA (EL DISEÑO VISUAL PRO) ---
 function StorePage({ setView }) {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem('contreburger_cart');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortOption, setSortOption] = useState("default");
@@ -529,6 +703,7 @@ function StorePage({ setView }) {
   const [scrollY, setScrollY] = useState(0);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [currentHeaderIndex, setCurrentHeaderIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const menuRef = useRef(null);
@@ -568,6 +743,12 @@ function StorePage({ setView }) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Persistir carrito en localStorage
+  useEffect(() => {
+    try { localStorage.setItem('contreburger_cart', JSON.stringify(cart)); }
+    catch {}
+  }, [cart]);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -691,8 +872,20 @@ function StorePage({ setView }) {
     window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  const handleCheckoutWithDelay = () => {
+    setIsSending(true);
+    setTimeout(() => {
+      handleCheckout();
+      setIsSending(false);
+      setIsCheckoutOpen(false);
+      setCart([]);
+      localStorage.removeItem('contreburger_cart');
+    }, 1900);
+  };
+
   return (
     <>
+      {isSending && <SendingOverlay />}
       <style>{`
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -999,7 +1192,7 @@ function StorePage({ setView }) {
                     </span>
                   </div>
                 </div>
-                <button onClick={handleCheckout} disabled={!checkoutData.paymentMethod || !checkoutData.name || (checkoutData.type === 'delivery' && (!checkoutData.address || !checkoutData.number))} className="w-full bg-stone-900 text-white font-bold py-3 rounded-xl hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                <button onClick={handleCheckoutWithDelay} disabled={!checkoutData.paymentMethod || !checkoutData.name || (checkoutData.type === 'delivery' && (!checkoutData.address || !checkoutData.number))} className="w-full bg-stone-900 text-white font-bold py-3 rounded-xl hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm">
                   ENVIAR PEDIDO 🚀
                 </button>
                 <div className="flex gap-2">
@@ -1023,6 +1216,7 @@ function StorePage({ setView }) {
 export default function App() {
   const [view, setView] = useState('home'); // 'home', 'login', 'admin'
   const [user, setUser] = useState(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -1042,6 +1236,7 @@ export default function App() {
 
   return (
     <>
+      {showSplash && view === 'home' && <SplashScreen onFinish={() => setShowSplash(false)} />}
       {view === 'home' && <StorePage setView={setView} />}
       {view === 'login' && <LoginPage onLoginSuccess={() => setView('admin')} />}
       {view === 'admin' && <AdminPage setView={setView} />}
