@@ -30,8 +30,8 @@ function SplashScreen({ onFinish }) {
     }, 900);
 
     // Empezar fade-out a los 2.6s y terminar a los 3s
-    const fadeTimer = setTimeout(() => setFadingOut(true), 2600);
-    const finishTimer = setTimeout(() => onFinish(), 3100);
+    const fadeTimer = setTimeout(() => setFadingOut(true), 3100);
+    const finishTimer = setTimeout(() => onFinish(), 3700);
 
     return () => { clearInterval(phraseTimer); clearTimeout(fadeTimer); clearTimeout(finishTimer); };
   }, []);
@@ -145,7 +145,7 @@ function SendingOverlay() {
             className="absolute"
             style={{
               left: `${bikePos}%`,
-              transform: 'translateX(-50%)',
+              transform: 'translateX(-50%) scaleX(-1)',
               animation: 'bikeBounce 0.4s ease-in-out infinite',
               transition: 'left 0.03s linear',
               fontSize: '28px',
@@ -880,7 +880,7 @@ function StorePage({ setView }) {
       setIsCheckoutOpen(false);
       setCart([]);
       localStorage.removeItem('contreburger_cart');
-    }, 1900);
+    }, 2500);
   };
 
   return (
