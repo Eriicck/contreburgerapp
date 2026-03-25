@@ -178,17 +178,17 @@ function SendingOverlay() {
 const WHATSAPP_NUMBER = "5491124952866";
 
 const HEADER_IMAGES = [
-  "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965&auto=format&fit=crop", 
+  "https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/header_1.jpg?alt=media&token=dc9ba846-cda4-43de-900e-5b32e7280d40", 
   "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?q=80&w=2071&auto=format&fit=crop", 
   "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?q=80&w=2069&auto=format&fit=crop"
 ];
 
 const CATEGORIES = [
-  { id: 'burgers', label: 'Hamburguesas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/Hamburguesa_categoria_9_16.png?alt=media&token=77f54e8b-fb6e-4103-b430-bca8ec65c8d5' },
-  { id: 'tequenos', label: 'Tequeños', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/tequenos_9_16.png?alt=media&token=cfa1bcc7-0802-42b5-804e-79a6f5bdcfd2' },
-  { id: 'empanadas', label: 'Empanadas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/empanadas_9_16.png?alt=media&token=b3fa27db-7945-47d2-b3c7-2bfccdb3c861' },
-  { id: 'drinks', label: 'Bebidas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/CAtegoria_bebidas_2_9_16.png?alt=media&token=86af7b5d-4310-478b-a0bb-93efc6011e33' },
-  { id: 'desserts', label: 'Postres', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/3%20LECHES_9_16.png?alt=media&token=4316a794-d3a9-4c0e-b172-09837b9bf100' },
+  { id: 'burgers', label: 'Hamburguesas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/Hamburguesa_categoria_9_16.jpg?alt=media&token=fd2c74c9-8c00-4d1f-b7d6-dfb4b02bf385' },
+  { id: 'tequenos', label: 'Tequeños', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/tequenos_9_16.jpg?alt=media&token=bd625e52-4843-49cd-b8a4-bc2f426946af' },
+  { id: 'empanadas', label: 'Empanadas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/empanadas_9_16.jpg?alt=media&token=1b968cc0-89cf-417d-93fb-1609f6368679' },
+  { id: 'drinks', label: 'Bebidas', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/CAtegoria_bebidas_2_9_16.jpg?alt=media&token=d76ba9b1-899c-4d4b-9d46-1a6fbefd35a7' },
+  { id: 'desserts', label: 'Postres', image: 'https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/Postre_Categoria.jpg?alt=media&token=1072ec28-b2e3-40fa-881e-99bdaafdbb76' },
 ];
 
 const Icons = {
@@ -1072,7 +1072,7 @@ function StorePage({ setView }) {
 
         {/* SECCIÓN 4: FOOTER */}
         <footer className="relative h-screen bg-stone-900 flex flex-col justify-between overflow-hidden">
-          <div className="absolute inset-0" style={{ backgroundImage: `url('https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/footer%20contreburger%201.jpg?alt=media&token=0a3fc829-1a4b-4b31-acc8-bac893392010')`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
+          <div className="absolute inset-0" style={{ backgroundImage: `url('https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/footer%20contreburger%201.jpg?alt=media&token=b36ba75c-df03-4569-adc8-d189d30675ce')`, backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.3 }} />
           <div className="relative z-10 max-w-4xl mx-auto px-6 text-center flex-grow flex flex-col justify-center">
               <h2 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tighter drop-shadow-lg">SÍGUENOS EN <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600">REDES SOCIALES</span></h2>
               <p className="text-stone-300 text-xl mb-12 max-w-2xl mx-auto drop-shadow-md font-medium">Participa en nuestros sorteos, mira el detrás de escena de nuestras cocinas y comparte tu experiencia Contreburger.</p>
