@@ -647,9 +647,15 @@ function ProductCard({ product, isMobile, addToCart }) {
     <div className={`bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100 flex flex-col h-full transition-all duration-300 ${isUnavailable ? '' : 'hover:-translate-y-2 hover:shadow-xl group'}`}>
       <div className={`overflow-hidden relative ${isMobile ? 'h-64 aspect-square' : 'h-48'}`}>
         <img src={product.image} alt={product.name}
-          className={`w-full h-full object-cover transition-transform duration-700
+          draggable={false}
+          onContextMenu={e => e.preventDefault()}
+          className={`w-full h-full object-cover transition-transform duration-700 select-none
             ${isUnavailable ? 'brightness-75' : 'group-hover:scale-110'}
-            ${isOutOfStock ? 'grayscale' : ''}`} />
+            ${isOutOfStock ? 'grayscale' : ''}`}
+          style={{ userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'none' }}
+        />
+        {/* Overlay anti-copia: captura eventos sobre la imagen */}
+        <div className="absolute inset-0 z-10" onContextMenu={e => e.preventDefault()} style={{ userSelect: 'none' }} />
 
         {isOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -750,6 +756,35 @@ function StorePage({ setView }) {
     catch {}
   }, [cart]);
 
+  // Bloquear scroll del fondo cuando modal carrito o checkout está abierto
+  useEffect(() => {
+    if (isCartOpen || isCheckoutOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isCartOpen, isCheckoutOpen]);
+
+  // Bloquear zoom (pinch-to-zoom y doble tap)
+  useEffect(() => {
+    const preventZoom = (e) => { if (e.touches && e.touches.length > 1) e.preventDefault(); };
+    const preventDblTapZoom = (e) => { e.preventDefault(); };
+    document.addEventListener('touchmove', preventZoom, { passive: false });
+    document.addEventListener('gesturestart', preventDblTapZoom, { passive: false });
+    document.addEventListener('gesturechange', preventDblTapZoom, { passive: false });
+    return () => {
+      document.removeEventListener('touchmove', preventZoom);
+      document.removeEventListener('gesturestart', preventDblTapZoom);
+      document.removeEventListener('gesturechange', preventDblTapZoom);
+    };
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', handleScroll);
@@ -831,14 +866,19 @@ function StorePage({ setView }) {
       empanadas: '🥟 Empanadas',
       drinks: '🥤 Bebidas',
       desserts: '🍰 Postres',
-      panchos: '🌭 Panchos',
+      panchos: '🌭 Panchos Venezolanos',
       otros: '🍽 Otros',
     };
     // También intentar con categorías dinámicas de Firebase
     const getCatLabel = (catId) => {
       if (catLabels[catId]) return catLabels[catId];
       const found = categories.find(c => c.id === catId);
-      return found ? `🍽 ${found.label}` : `🍽 ${catId}`;
+      if (found) {
+        const lbl = found.label.toLowerCase();
+        if (lbl.includes('pancho') || lbl.includes('venezolano') || lbl.includes('hotdog') || lbl.includes('hot dog')) return `🌭 ${found.label}`;
+        return `🍽 ${found.label}`;
+      }
+      return `🍽 ${catId}`;
     };
 
     let message = `*🍔 HOLA CONTREBURGER!*\n\nQuiero hacer un pedido 📋\n\n*MI PEDIDO:*\n`;
@@ -892,6 +932,10 @@ function StorePage({ setView }) {
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .animate-marquee { animation: marquee 20s linear infinite; }
+        /* Anti-zoom global */
+        html { touch-action: pan-x pan-y; }
+        /* Imágenes no seleccionables globalmente */
+        img { -webkit-user-drag: none; user-select: none; -webkit-user-select: none; }
       `}</style>
       <div className="font-sans text-stone-900 bg-stone-50 min-h-screen">
         
@@ -936,8 +980,12 @@ function StorePage({ setView }) {
                     className={`group relative h-40 md:h-full rounded-2xl overflow-hidden border shadow-2xl transition-all duration-300 focus:outline-none
                       ${isUnavailable ? 'border-stone-700 cursor-default' : 'border-stone-700 hover:scale-[1.03] hover:border-amber-500 hover:z-10 focus:ring-2 focus:ring-amber-500/50'}`}>
                     <img src={cat.image} alt={cat.label}
-                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 opacity-60
-                        ${isUnavailable ? 'grayscale brightness-50' : 'group-hover:scale-110 group-hover:opacity-80'}`} />
+                      draggable={false}
+                      onContextMenu={e => e.preventDefault()}
+                      className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 opacity-60 select-none
+                        ${isUnavailable ? 'grayscale brightness-50' : 'group-hover:scale-110 group-hover:opacity-80'}`}
+                      style={{ userSelect: 'none', WebkitUserSelect: 'none', pointerEvents: 'none' }}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
                     {isComingSoon ? (
                       <div className="absolute inset-0 flex flex-col items-center justify-center p-3 text-center">
@@ -1063,7 +1111,7 @@ function StorePage({ setView }) {
                   <div key={item.id} className="border-b border-stone-100 pb-3 last:border-0">
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <img src={item.image} className="w-14 h-14 rounded-lg object-cover flex-shrink-0" alt={item.name} />
+                        <img src={item.image} draggable={false} onContextMenu={e=>e.preventDefault()} className="w-14 h-14 rounded-lg object-cover flex-shrink-0 select-none" style={{pointerEvents:'none',userSelect:'none'}} alt={item.name} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <h4 className="font-bold text-stone-900 text-sm">{item.name}</h4>
