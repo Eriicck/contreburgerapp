@@ -154,6 +154,7 @@ function AdminPage({ setView }) {
   const [activeTab, setActiveTab] = useState('products');
   const [products, setProducts] = useState([]);
   const [marqueeText, setMarqueeText] = useState("");
+  const [deliveryCost, setDeliveryCost] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   
   // UI Sidebar
@@ -176,7 +177,10 @@ function AdminPage({ setView }) {
       setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     const unsubSettings = onSnapshot(doc(db, "settings", "main_settings"), (d) => {
-        if(d.exists()) setMarqueeText(d.data().marqueeText);
+        if(d.exists()) {
+          setMarqueeText(d.data().marqueeText || "");
+          setDeliveryCost(d.data().deliveryCost ?? "");
+        }
     });
     return () => { unsubProd(); unsubSettings(); };
   }, []);
@@ -235,6 +239,13 @@ function AdminPage({ setView }) {
     alert("¡Cinta actualizada!");
   };
 
+  const handleSaveDeliveryCost = async () => {
+    const cost = Number(deliveryCost);
+    if (isNaN(cost) || cost < 0) { alert("Ingresá un monto válido."); return; }
+    await setDoc(doc(db, "settings", "main_settings"), { deliveryCost: cost }, { merge: true });
+    alert("¡Costo de delivery actualizado!");
+  };
+
   const handleLogout = async () => {
     if (window.confirm("¿Deseas cerrar sesión?")) {
         await signOut(auth);
@@ -279,7 +290,7 @@ function AdminPage({ setView }) {
             <nav className="space-y-2 flex-grow">
                 <SidebarItem id="products" label="Productos" icon={Icons.Burger} />
                 <SidebarItem id="categories" label="Categorías" icon={Icons.List} />
-                <SidebarItem id="banner" label="Cinta / Banner" icon={Icons.Megaphone} />
+                <SidebarItem id="banner" label="Ajustes" icon={Icons.Megaphone} />
             </nav>
             <div className="mt-auto pt-4 border-t border-stone-800 relative z-20">
                 <button onClick={(e) => { e.stopPropagation(); handleLogout(); }} className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all font-medium text-red-400 hover:bg-red-900/20 hover:text-red-300`}>
@@ -296,7 +307,7 @@ function AdminPage({ setView }) {
         <header className="bg-white border-b border-stone-200 sticky top-0 z-10 px-4 md:px-8 py-4 flex justify-between items-center shadow-sm">
             <div className="flex items-center gap-4">
                 <button onClick={() => setIsMobileSidebarOpen(true)} className="md:hidden text-stone-600 hover:text-stone-900"><Icons.Menu /></button>
-                <h2 className="text-lg md:text-xl font-bold text-stone-800 capitalize truncate">{activeTab === 'products' ? 'Productos' : activeTab === 'categories' ? 'Categorías' : 'Banner'}</h2>
+                <h2 className="text-lg md:text-xl font-bold text-stone-800 capitalize truncate">{activeTab === 'products' ? 'Productos' : activeTab === 'categories' ? 'Categorías' : 'Ajustes'}</h2>
             </div>
             <div className="flex items-center gap-3">
                 <div className="hidden md:block text-right"><p className="text-sm font-bold text-stone-900">Erick Dev</p><p className="text-xs text-stone-500">Administrador</p></div>
@@ -367,7 +378,8 @@ function AdminPage({ setView }) {
             )}
 
             {activeTab === 'banner' && (
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-2xl mx-auto space-y-6">
+                    {/* --- CINTA / BANNER --- */}
                     <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
                         <div className="bg-stone-900 p-6 text-white"><h3 className="text-xl font-bold flex items-center gap-2"><Icons.Megaphone /> Editar Cinta</h3></div>
                         <div className="p-6 md:p-8">
@@ -375,6 +387,42 @@ function AdminPage({ setView }) {
                             <textarea rows="4" className="w-full p-4 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium text-stone-800" value={marqueeText} onChange={(e) => setMarqueeText(e.target.value)} />
                             <div className="mt-6 bg-amber-50 p-4 rounded-xl border border-amber-100"><p className="text-xs font-bold text-amber-800 uppercase mb-2">Previsualización:</p><div className="overflow-hidden whitespace-nowrap bg-black py-2 px-4 rounded text-white text-xs font-bold">{marqueeText}</div></div>
                             <button onClick={handleSaveBanner} className="w-full mt-6 bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex justify-center items-center gap-2"><Icons.Check /> Guardar Cambios</button>
+                        </div>
+                    </div>
+
+                    {/* --- COSTO DE DELIVERY --- */}
+                    <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+                        <div className="bg-stone-900 p-6 text-white">
+                            <h3 className="text-xl font-bold flex items-center gap-2">
+                                <Icons.Bike /> Costo de Delivery
+                            </h3>
+                            <p className="text-stone-400 text-sm mt-1">Este valor se muestra en el checkout y se suma al total del pedido.</p>
+                        </div>
+                        <div className="p-6 md:p-8">
+                            <label className="block font-bold text-stone-700 mb-2">Precio del envío ($)</label>
+                            <div className="relative">
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-lg">$</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    placeholder="Ej: 1500"
+                                    className="w-full pl-9 pr-4 py-4 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-bold text-stone-900 text-lg"
+                                    value={deliveryCost}
+                                    onChange={(e) => setDeliveryCost(e.target.value)}
+                                />
+                            </div>
+                            <div className="mt-4 bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center gap-3">
+                                <span className="text-2xl">🛵</span>
+                                <div>
+                                    <p className="text-xs font-bold text-amber-800 uppercase mb-0.5">Vista previa en checkout</p>
+                                    <p className="text-sm text-stone-700 font-medium">
+                                        Costo de envío: <span className="font-extrabold text-amber-700">${deliveryCost ? Number(deliveryCost).toLocaleString('es-AR') : '0'}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={handleSaveDeliveryCost} className="w-full mt-6 bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex justify-center items-center gap-2">
+                                <Icons.Check /> Guardar Costo de Delivery
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -489,6 +537,7 @@ function StorePage({ setView }) {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [marqueeText, setMarqueeText] = useState("Cargando...");
+  const [deliveryCost, setDeliveryCost] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -500,7 +549,10 @@ function StorePage({ setView }) {
       setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => !c.hidden).sort((a, b) => (a.order ?? 99) - (b.order ?? 99)));
     });
     const unsubSett = onSnapshot(doc(db, "settings", "main_settings"), (d) => {
-       if(d.exists()) setMarqueeText(d.data().marqueeText);
+       if(d.exists()) {
+         setMarqueeText(d.data().marqueeText);
+         setDeliveryCost(d.data().deliveryCost ?? 0);
+       }
        else setMarqueeText("🕰 Jueves a Domingos | 19:00 a 23:00 hrs • Envíos a todo Moreno");
     });
     return () => { unsubProd(); unsubCats(); unsubSett(); };
@@ -581,21 +633,56 @@ function StorePage({ setView }) {
 
   const handleCheckout = () => {
     const { type, paymentMethod, cashAmount, name, address, number, crossStreets } = checkoutData;
-    let message = `*HOLA CONTREBURGER! 🍔 QUIERO HACER UN PEDIDO*\n\n*MI PEDIDO:*\n`;
+    const totalConEnvio = type === 'delivery' ? cartTotal + deliveryCost : cartTotal;
+
+    // Agrupar items por categoría
+    const grouped = {};
     cart.forEach(item => {
-      message += `▪ ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})`;
-      if (item.note && item.note.trim()) message += ` _(${item.note.trim()})_`;
-      message += `\n`;
+      const catId = item.category || 'otros';
+      if (!grouped[catId]) grouped[catId] = [];
+      grouped[catId].push(item);
     });
-    message += `\n*TOTAL: $${cartTotal.toLocaleString('es-AR')}*\n----------------------------\n`;
-    
+
+    // Mapeo de IDs de categoría a etiquetas legibles
+    const catLabels = {
+      burgers: '🍔 Hamburguesas',
+      tequenos: '🧀 Tequeños',
+      empanadas: '🥟 Empanadas',
+      drinks: '🥤 Bebidas',
+      desserts: '🍰 Postres',
+      otros: '🍽 Otros',
+    };
+    // También intentar con categorías dinámicas de Firebase
+    const getCatLabel = (catId) => {
+      if (catLabels[catId]) return catLabels[catId];
+      const found = categories.find(c => c.id === catId);
+      return found ? `🍽 ${found.label}` : `🍽 ${catId}`;
+    };
+
+    let message = `*🍔 HOLA CONTREBURGER!*\n\nQuiero hacer un pedido 📋\n\n*MI PEDIDO:*\n`;
+
+    Object.entries(grouped).forEach(([catId, items]) => {
+      message += `\n*${getCatLabel(catId)}:*\n`;
+      items.forEach(item => {
+        message += `  - ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})`;
+        if (item.note && item.note.trim()) message += ` _(${item.note.trim()})_`;
+        message += `\n`;
+      });
+    });
+
+    message += `\n*SUBTOTAL: $${cartTotal.toLocaleString('es-AR')}*\n`;
+    if (type === 'delivery') {
+      message += `🛵 *ENVÍO: $${deliveryCost.toLocaleString('es-AR')}*\n`;
+    }
+    message += `*TOTAL: $${totalConEnvio.toLocaleString('es-AR')}*\n----------------------------\n`;
+
     if (type === 'delivery') {
       message += `🛵 *DELIVERY*\n👤 *Nombre:* ${name}\n📍 *Dirección:* ${address} ${number}\n`;
       if (crossStreets) message += `🛣 *Entre calles:* ${crossStreets}\n`;
     } else {
-      message += `🏃 *RETIRO EN EL LOCAL*\n👤 *Nombre:* ${name}\n`;
+      message += `🏪 *RETIRO EN EL LOCAL*\n👤 *Nombre:* ${name}\n`;
     }
-    
+
     message += `\n💳 *PAGO CON:* ${paymentMethod === 'mercadopago' ? 'MercadoPago' : 'Efectivo'}`;
     if (paymentMethod === 'efectivo' && type === 'delivery' && cashAmount) {
       message += `\n💵 *ABONO CON:* $${cashAmount} (Calcular vuelto)`;
@@ -829,71 +916,97 @@ function StorePage({ setView }) {
 
         {/* MODAL CHECKOUT */}
         {isCheckoutOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setIsCheckoutOpen(false)}>
-            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
-              <div className="p-5 border-b border-stone-100 flex justify-between items-center">
-                <h2 className="text-xl font-bold text-stone-900">Finalizar Pedido</h2>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/60 backdrop-blur-sm" onClick={() => setIsCheckoutOpen(false)}>
+            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col" style={{maxHeight: '88vh'}} onClick={e => e.stopPropagation()}>
+              <div className="p-4 border-b border-stone-100 flex justify-between items-center shrink-0">
+                <h2 className="text-lg font-bold text-stone-900">Finalizar Pedido</h2>
                 <button onClick={() => setIsCheckoutOpen(false)} className="text-stone-400 hover:text-stone-900"><Icons.Close /></button>
               </div>
-              <div className="p-6 overflow-y-auto space-y-6">
+              <div className="p-4 overflow-y-auto space-y-4 flex-1">
                   <section>
-                      <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wide mb-3">1. Tipo de Entrega</h3>
+                      <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide mb-2">1. Tipo de Entrega</h3>
                       <div className="grid grid-cols-2 gap-3">
-                          <button onClick={() => setCheckoutData({...checkoutData, type: 'delivery'})} className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${checkoutData.type === 'delivery' ? 'border-amber-600 bg-amber-50' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}>
-                            <span style={{fontSize:'32px',lineHeight:1}}>🛵</span>
+                          <button onClick={() => setCheckoutData({...checkoutData, type: 'delivery'})} className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${checkoutData.type === 'delivery' ? 'border-amber-600 bg-amber-50' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}>
+                            <span style={{fontSize:'28px',lineHeight:1}}>🛵</span>
                             <span className={`font-bold text-sm ${checkoutData.type === 'delivery' ? 'text-amber-700' : ''}`}>Delivery</span>
+                            <span className={`text-xs font-bold ${checkoutData.type === 'delivery' ? 'text-amber-600' : 'text-stone-400'}`}>+${deliveryCost.toLocaleString('es-AR')}</span>
                           </button>
-                          <button onClick={() => setCheckoutData({...checkoutData, type: 'pickup'})} className={`p-4 rounded-xl border-2 flex flex-col items-center gap-2 transition-all ${checkoutData.type === 'pickup' ? 'border-amber-600 bg-amber-50' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}>
-                            <span style={{fontSize:'32px',lineHeight:1}}>🏪</span>
+                          <button onClick={() => setCheckoutData({...checkoutData, type: 'pickup'})} className={`p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all ${checkoutData.type === 'pickup' ? 'border-amber-600 bg-amber-50' : 'border-stone-200 text-stone-400 hover:border-stone-300'}`}>
+                            <span style={{fontSize:'28px',lineHeight:1}}>🏪</span>
                             <span className={`font-bold text-sm ${checkoutData.type === 'pickup' ? 'text-amber-700' : ''}`}>Retiro en local</span>
+                            <span className={`text-xs font-bold ${checkoutData.type === 'pickup' ? 'text-green-600' : 'text-stone-400'}`}>GRATIS</span>
                           </button>
                       </div>
                   </section>
-                  <section className="space-y-3">
-                      <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wide mb-3">2. {checkoutData.type === 'delivery' ? 'Datos de Envío' : 'Datos de Contacto'}</h3>
-                      <input type="text" placeholder="Tu Nombre Completo" className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" value={checkoutData.name} onChange={e => setCheckoutData({...checkoutData, name: e.target.value})} />
+                  <section className="space-y-2">
+                      <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide mb-2">2. {checkoutData.type === 'delivery' ? 'Datos de Envío' : 'Datos de Contacto'}</h3>
+                      <input type="text" placeholder="Tu Nombre Completo" className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 text-sm" value={checkoutData.name} onChange={e => setCheckoutData({...checkoutData, name: e.target.value})} />
                       {checkoutData.type === 'delivery' && (
-                          <div className="space-y-3 animate-fade-in">
-                              <div className="grid grid-cols-3 gap-3">
-                                  <input type="text" placeholder="Calle" className="col-span-2 w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" value={checkoutData.address} onChange={e => setCheckoutData({...checkoutData, address: e.target.value})} />
-                                  <input type="text" placeholder="Altura" className="col-span-1 w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" value={checkoutData.number} onChange={e => setCheckoutData({...checkoutData, number: e.target.value})} />
+                          <div className="space-y-2 animate-fade-in">
+                              <div className="grid grid-cols-3 gap-2">
+                                  <input type="text" placeholder="Calle" className="col-span-2 w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 text-sm" value={checkoutData.address} onChange={e => setCheckoutData({...checkoutData, address: e.target.value})} />
+                                  <input type="text" placeholder="Altura" className="col-span-1 w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 text-sm" value={checkoutData.number} onChange={e => setCheckoutData({...checkoutData, number: e.target.value})} />
                               </div>
-                              <input type="text" placeholder="Entre calles (Opcional)" className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500" value={checkoutData.crossStreets} onChange={e => setCheckoutData({...checkoutData, crossStreets: e.target.value})} />
+                              <input type="text" placeholder="Entre calles (Opcional)" className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:border-amber-500 text-sm" value={checkoutData.crossStreets} onChange={e => setCheckoutData({...checkoutData, crossStreets: e.target.value})} />
                           </div>
                       )}
                   </section>
                   <section>
-                      <h3 className="text-sm font-bold text-stone-400 uppercase tracking-wide mb-3">3. Forma de Pago</h3>
-                      <div className="space-y-3">
-                          <label className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${checkoutData.paymentMethod === 'mercadopago' ? 'border-amber-600 bg-amber-50' : 'border-stone-200'}`}>
-                              <input type="radio" name="payment" className="accent-amber-600 w-5 h-5" onChange={() => setCheckoutData({...checkoutData, paymentMethod: 'mercadopago'})} />
-                              <span className="font-bold text-stone-800">MercadoPago</span>
+                      <h3 className="text-xs font-bold text-stone-400 uppercase tracking-wide mb-2">3. Forma de Pago</h3>
+                      <div className="space-y-2">
+                          <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${checkoutData.paymentMethod === 'mercadopago' ? 'border-amber-600 bg-amber-50' : 'border-stone-200'}`}>
+                              <input type="radio" name="payment" className="accent-amber-600 w-4 h-4" onChange={() => setCheckoutData({...checkoutData, paymentMethod: 'mercadopago'})} />
+                              <span className="font-bold text-stone-800 text-sm">MercadoPago</span>
                           </label>
-                          <label className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${checkoutData.paymentMethod === 'efectivo' ? 'border-amber-600 bg-amber-50' : 'border-stone-200'}`}>
-                              <input type="radio" name="payment" className="accent-amber-600 w-5 h-5" onChange={() => setCheckoutData({...checkoutData, paymentMethod: 'efectivo'})} />
-                              <span className="font-bold text-stone-800">Efectivo</span>
+                          <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${checkoutData.paymentMethod === 'efectivo' ? 'border-amber-600 bg-amber-50' : 'border-stone-200'}`}>
+                              <input type="radio" name="payment" className="accent-amber-600 w-4 h-4" onChange={() => setCheckoutData({...checkoutData, paymentMethod: 'efectivo'})} />
+                              <span className="font-bold text-stone-800 text-sm">Efectivo</span>
                           </label>
                           {checkoutData.paymentMethod === 'efectivo' && checkoutData.type === 'delivery' && (
-                              <div className="animate-fade-in pl-8">
+                              <div className="animate-fade-in pl-6">
                                   <label className="text-xs text-stone-500 block mb-1">¿Con cuánto abonas? (Para el vuelto)</label>
                                   <div className="relative">
-                                      <span className="absolute left-3 top-3 text-stone-400">$</span>
-                                      <input type="number" placeholder="Monto exacto..." className="w-full pl-7 p-3 bg-white border border-amber-600 rounded-xl focus:outline-none" value={checkoutData.cashAmount} onChange={e => setCheckoutData({...checkoutData, cashAmount: e.target.value})} />
+                                      <span className="absolute left-3 top-2.5 text-stone-400">$</span>
+                                      <input type="number" placeholder="Monto exacto..." className="w-full pl-7 p-2.5 bg-white border border-amber-600 rounded-xl focus:outline-none text-sm" value={checkoutData.cashAmount} onChange={e => setCheckoutData({...checkoutData, cashAmount: e.target.value})} />
                                   </div>
                               </div>
                           )}
                       </div>
                   </section>
               </div>
-              <div className="p-4 border-t border-stone-100 bg-stone-50 space-y-2">
-                <button onClick={handleCheckout} disabled={!checkoutData.paymentMethod || !checkoutData.name || (checkoutData.type === 'delivery' && (!checkoutData.address || !checkoutData.number))} className="w-full bg-stone-900 text-white font-bold py-4 rounded-xl hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                  ENVIAR PEDIDO
+              <div className="p-3 border-t border-stone-100 bg-stone-50 space-y-2 shrink-0">
+                {/* RESUMEN DE COSTOS */}
+                <div className="bg-white rounded-xl border border-stone-200 px-4 py-2.5 space-y-1.5">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-stone-500">Subtotal</span>
+                    <span className="font-bold text-stone-700">${cartTotal.toLocaleString('es-AR')}</span>
+                  </div>
+                  {checkoutData.type === 'delivery' ? (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-stone-500">🛵 Envío</span>
+                      <span className="font-bold text-amber-700">${deliveryCost.toLocaleString('es-AR')}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-stone-500">🏪 Envío</span>
+                      <span className="font-bold text-green-600">GRATIS</span>
+                    </div>
+                  )}
+                  <div className="border-t border-stone-100 pt-1.5 flex justify-between items-center">
+                    <span className="font-bold text-stone-800 text-sm">Total</span>
+                    <span className="text-xl font-extrabold text-stone-900">
+                      ${(checkoutData.type === 'delivery' ? cartTotal + deliveryCost : cartTotal).toLocaleString('es-AR')}
+                    </span>
+                  </div>
+                </div>
+                <button onClick={handleCheckout} disabled={!checkoutData.paymentMethod || !checkoutData.name || (checkoutData.type === 'delivery' && (!checkoutData.address || !checkoutData.number))} className="w-full bg-stone-900 text-white font-bold py-3 rounded-xl hover:bg-amber-600 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+                  ENVIAR PEDIDO 🚀
                 </button>
                 <div className="flex gap-2">
-                  <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }} className="flex-1 py-2.5 text-sm font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors">
+                  <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(true); }} className="flex-1 py-2 text-xs font-bold text-stone-500 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors">
                     ← Volver
                   </button>
-                  <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(false); }} className="flex-1 py-2.5 text-sm font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200">
+                  <button onClick={() => { setIsCheckoutOpen(false); setIsCartOpen(false); }} className="flex-1 py-2 text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors border border-amber-200">
                     🛒 Seguir agregando
                   </button>
                 </div>

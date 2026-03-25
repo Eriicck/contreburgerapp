@@ -56,6 +56,7 @@ export default function Admin() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [marqueeText, setMarqueeText] = useState("Cargando banner...");
+  const [deliveryCost, setDeliveryCost] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -108,6 +109,7 @@ export default function Admin() {
     const unsubSettings = onSnapshot(collection(db, "settings"), (snap) => {
       const settings = snap.docs.map(d => d.data());
       setMarqueeText(settings[0]?.marqueeText || "¡Bienvenido a Contreburger!");
+      setDeliveryCost(settings[0]?.deliveryCost ?? "");
     });
 
     return () => { unsubProducts(); unsubCategories(); unsubSettings(); };
@@ -202,6 +204,15 @@ export default function Admin() {
     try {
       await setDoc(doc(db, "settings", "main_settings"), { marqueeText }, { merge: true });
       alert("¡Cinta actualizada!");
+    } catch (e) { alert("Error: " + e.message); }
+  };
+
+  const handleSaveDeliveryCost = async () => {
+    const cost = Number(deliveryCost);
+    if (isNaN(cost) || cost < 0) { alert("Ingresá un monto válido."); return; }
+    try {
+      await setDoc(doc(db, "settings", "main_settings"), { deliveryCost: cost }, { merge: true });
+      alert("¡Costo de delivery actualizado!");
     } catch (e) { alert("Error: " + e.message); }
   };
 
@@ -579,7 +590,9 @@ export default function Admin() {
 
           {/* ===== VISTA BANNER ===== */}
           {activeTab === 'banner' && (
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto space-y-6">
+
+              {/* CINTA */}
               <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
                 <div className="bg-stone-900 p-6 text-white">
                   <h3 className="text-xl font-bold flex items-center gap-2"><Icon.Megaphone /> Editar Cinta</h3>
@@ -594,6 +607,44 @@ export default function Admin() {
                   <button onClick={handleSaveBanner} className="w-full mt-6 bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex justify-center items-center gap-2"><Icon.Check /> Guardar Cambios</button>
                 </div>
               </div>
+
+              {/* COSTO DE DELIVERY */}
+              <div className="bg-white rounded-2xl shadow-lg border border-stone-200 overflow-hidden">
+                <div className="bg-stone-900 p-6 text-white">
+                  <h3 className="text-xl font-bold flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5.5 17a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Zm13 0a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M2 17h1.5"/><path d="M19 17h3"/><path d="M8 17h5.5"/><path d="M16.5 12H8L6 4H3"/><path d="M21 9h-7l-1 3h9l-1 5Z"/></svg>
+                    Costo de Delivery
+                  </h3>
+                  <p className="text-stone-400 text-sm mt-1">Este valor se suma al total del pedido cuando el cliente elige envío a domicilio.</p>
+                </div>
+                <div className="p-6 md:p-8">
+                  <label className="block font-bold text-stone-700 mb-2">Precio del envío ($)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-bold text-lg">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      placeholder="Ej: 1500"
+                      className="w-full pl-9 pr-4 py-4 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none font-bold text-stone-900 text-lg"
+                      value={deliveryCost}
+                      onChange={(e) => setDeliveryCost(e.target.value)}
+                    />
+                  </div>
+                  <div className="mt-4 bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-center gap-3">
+                    <span className="text-2xl">🛵</span>
+                    <div>
+                      <p className="text-xs font-bold text-amber-800 uppercase mb-0.5">Vista previa en checkout</p>
+                      <p className="text-sm text-stone-700 font-medium">
+                        Costo de envío: <span className="font-extrabold text-amber-700">${deliveryCost ? Number(deliveryCost).toLocaleString('es-AR') : '0'}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={handleSaveDeliveryCost} className="w-full mt-6 bg-stone-900 text-white py-4 rounded-xl font-bold hover:bg-amber-600 transition-colors shadow-lg flex justify-center items-center gap-2">
+                    <Icon.Check /> Guardar Costo de Delivery
+                  </button>
+                </div>
+              </div>
+
             </div>
           )}
 
