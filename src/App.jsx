@@ -123,7 +123,7 @@ function SendingOverlay() {
       setDots(prev => prev.length >= 3 ? '' : prev + '.');
     }, 400);
     const bikeTimer = setInterval(() => {
-      setBikePos(prev => (prev >= 100 ? 0 : prev + 2));
+      setBikePos(prev => (prev <= 0 ? 100 : prev - 2));
     }, 30);
     return () => { clearInterval(dotsTimer); clearInterval(bikeTimer); };
   }, []);
@@ -145,7 +145,7 @@ function SendingOverlay() {
             className="absolute"
             style={{
               left: `${bikePos}%`,
-              transform: 'translateX(-50%) scaleX(-1)',
+              transform: 'translateX(-50%) ',
               animation: 'bikeBounce 0.4s ease-in-out infinite',
               transition: 'left 0.03s linear',
               fontSize: '28px',
@@ -831,6 +831,7 @@ function StorePage({ setView }) {
       empanadas: '🥟 Empanadas',
       drinks: '🥤 Bebidas',
       desserts: '🍰 Postres',
+      panchos: '🌭 Panchos',
       otros: '🍽 Otros',
     };
     // También intentar con categorías dinámicas de Firebase
