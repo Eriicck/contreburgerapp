@@ -2,13 +2,32 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- Preconnect a Firebase y Google APIs para reducir latencia -->
+    <link rel="preconnect" href="https://contreburger-web.firebaseapp.com" crossorigin />
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+
     <link rel="icon" type="image/png" sizes="32x32" href="/contreweb/public/favicon.ico" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1c1917" />
-    <title>Contreburger</title>
+
+    <!-- SEO -->
+    <meta name="description" content="Contreburger – Las mejores hamburguesas de Moreno. Pedí por delivery o retirá en el local. ¡Enviamos tu pedido por WhatsApp!" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- Open Graph (para compartir en redes sociales) -->
+    <meta property="og:title" content="Contreburger" />
+    <meta property="og:description" content="Las mejores hamburguesas de Moreno. Pedí por delivery o retirá en el local." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://contreburger.com" />
+
+    <title>Contreburger – Hamburguesas en Moreno</title>
   </head>
   <body>
     <div id="root"></div>
