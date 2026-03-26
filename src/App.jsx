@@ -177,9 +177,9 @@ function SendingOverlay() {
 const WHATSAPP_NUMBER = "5491124952866";
 
 const HEADER_IMAGES = [
-  "https://firebasestorage.googleapis.com/v0/b/pedido-digital-online.firebasestorage.app/o/header_1.jpg?alt=media&token=dc9ba846-cda4-43de-900e-5b32e7280d40", 
-  "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?q=80&w=2071&auto=format&fit=crop", 
-  "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?q=80&w=2069&auto=format&fit=crop"
+  "https://firebasestorage.googleapis.com/v0/b/contreburger-web.firebasestorage.app/o/products%2Fheader_1_WEB.webp?alt=media&token=5d8ea773-ef5b-471e-afc6-90af74ef31d6", 
+  "https://firebasestorage.googleapis.com/v0/b/contreburger-web.firebasestorage.app/o/products%2Fheader_2_WEB.webp?alt=media&token=955c3ed1-1616-4daa-926b-102a7852e867", 
+  "https://firebasestorage.googleapis.com/v0/b/contreburger-web.firebasestorage.app/o/products%2Fheader_3_WEB.webp?alt=media&token=0f3f8985-f964-4adf-840f-bfd41c69b58b"
 ];
 
 const CATEGORIES = [
@@ -269,7 +269,8 @@ function LoginPage({ onLoginSuccess }) {
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-stone-900 font-sans text-stone-900">
       {/* FONDO */}
       <div className="absolute inset-0 z-0">
-        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?q=80&w=2071&auto=format&fit=crop" alt="Background" className="w-full h-full object-cover opacity-40"/>
+        <img src="https://firebasestorage.googleapis.com/v0/b/contreburger-web.firebasestorage.app/o/products%2Fheader_3_WEB.webp?alt=media&token=0f3f8985-f964-4adf-840f-bfd41c69b58b" alt="Background" className="w-full h-full object-cover opacity-40"/> 
+
         <div className="absolute inset-0 bg-gradient-to-t from-stone-900 via-stone-900/80 to-stone-900/60" />
       </div>
       <div className="absolute inset-0 z-0 opacity-10 pointer-events-none animate-pulse" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E")`, backgroundSize: '30px 30px' }} />
