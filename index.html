@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- Preconnect a Firebase y Google APIs para reducir latencia -->
-    <link rel="preconnect" href="https://contreburger-web.firebaseapp.com" crossorigin />
-    <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
+    <!-- Preconnects: sin crossorigin para dominios de auth, con crossorigin para APIs CORS -->
+    <link rel="preconnect" href="https://contreburger-web.firebaseapp.com" />
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
     <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
     <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
 
@@ -21,7 +21,7 @@
     <meta name="description" content="Contreburger – Las mejores hamburguesas de Moreno. Pedí por delivery o retirá en el local. ¡Enviamos tu pedido por WhatsApp!" />
     <meta name="robots" content="index, follow" />
 
-    <!-- Open Graph (para compartir en redes sociales) -->
+    <!-- Open Graph (WhatsApp, redes sociales) -->
     <meta property="og:title" content="Contreburger" />
     <meta property="og:description" content="Las mejores hamburguesas de Moreno. Pedí por delivery o retirá en el local." />
     <meta property="og:type" content="website" />

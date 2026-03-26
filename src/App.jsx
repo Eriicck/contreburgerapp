@@ -7,11 +7,10 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 // --- SPLASH SCREEN ---
 const SPLASH_PHRASES = [
-  "Las mejores hamburguesas de Moreno 🍔",
+  
   "Calidad que se siente en cada mordida ✨",
-  "Hecho con amor y mucho cheddar 🧀",
   "Tu pedido, a un mensaje de distancia 🛵",
-  "Preparando algo rico para vos... 🔥",
+ 
 ];
 
 function SplashScreen({ onFinish }) {
@@ -50,16 +49,16 @@ function SplashScreen({ onFinish }) {
           50% { transform: scale(1.04); opacity: 0.85; }
         }
         @keyframes splashGlow {
-          0%, 100% { text-shadow: 0 0 20px rgba(245,158,11,0.3); }
-          50% { text-shadow: 0 0 40px rgba(245,158,11,0.7), 0 0 80px rgba(245,158,11,0.3); }
+          0%, 100% { opacity: 0.85; }
+          50% { opacity: 1; }
         }
         @keyframes splashDot {
           0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
           40% { transform: translateY(-6px); opacity: 1; }
         }
         @keyframes splashLine {
-          0% { width: 0%; }
-          100% { width: 100%; }
+          0% { transform: scaleX(0); transform-origin: left; }
+          100% { transform: scaleX(1); transform-origin: left; }
         }
       `}</style>
 
@@ -82,7 +81,7 @@ function SplashScreen({ onFinish }) {
       {/* Línea decorativa animada */}
       <div className="w-48 h-px bg-stone-800 mb-6 overflow-hidden rounded-full">
         <div className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full"
-          style={{ animation: 'splashLine 2.6s ease-out forwards' }} />
+          style={{ animation: 'splashLine 2.6s ease-out forwards', transformOrigin: 'left' }} />
       </div>
 
       {/* Frase rotante */}
@@ -168,7 +167,7 @@ function SendingOverlay() {
         <div className="w-full h-1.5 bg-stone-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full"
-            style={{ animation: 'splashLine 1.8s ease-out forwards' }}
+            style={{ animation: 'splashLine 1.8s ease-out forwards', transformOrigin: 'left', width: '100%' }}
           />
         </div>
       </div>
