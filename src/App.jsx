@@ -174,7 +174,7 @@ function SendingOverlay() {
     </div>
   );
 }
-const WHATSAPP_NUMBER = "5491124952866";
+const WHATSAPP_NUMBER = "54911";
 
 const HEADER_IMAGES = [
   "https://firebasestorage.googleapis.com/v0/b/contreburger-web.firebasestorage.app/o/products%2Fheader_1_WEB.webp?alt=media&token=5d8ea773-ef5b-471e-afc6-90af74ef31d6", 
