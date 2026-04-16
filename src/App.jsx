@@ -245,15 +245,23 @@ function StorePage({ setView }) {
         setCart([]);
 
         // Abrimos WhatsApp automáticamente (¡ACUÉRDATE DE CAMBIAR ESTE NÚMERO!)
-        const numeroLocal = "5491136013353"; 
-        window.open(`https://wa.me/${numeroLocal}?text=${encodeURIComponent(mensaje)}`, '_blank');
+        /// const numeroLocal = "5491176612886"; 
+        /// window.open(`https://wa.me/${numeroLocal}?text=${encodeURIComponent(mensaje)}`, '_blank');
       }
     }
   }, []);
   // 👆 👆 👆 FIN DEL NUEVO CÓDIGO 👆 👆 👆
 
+////////////////////////// 👇 NUEVO CÓDIGO: BLOQUEO DE SCROLL CUANDO EL CART SE ABRE 👇
+useEffect(() => {
+  if (paymentSuccess) {
+    document.body.style.overflow = 'hidden'; // Bloquea el scroll
+  } else {
+    document.body.style.overflow = 'auto'; // Lo libera al cerrar
+  }
+}, [paymentSuccess]);
 
-
+///// 👆 NUEVO CÓDIGO: BLOQUEO DE SCROLL CUANDO EL CART SE ABRE 👆
 
 
   useEffect(() => {
@@ -756,7 +764,7 @@ function StorePage({ setView }) {
               </div>
             </div>
           </div>
-        )}
+        )}////// FIN MODAL CHECKOUT
 
 
 {/* 👇 CARTEL VISUAL DE PAGO EXITOSO 👇 */}
@@ -769,39 +777,48 @@ function StorePage({ setView }) {
             <p style={{ fontSize: '12px', color: '#888', marginBottom: '25px' }}>Comprobante MP: {paymentSuccess.paymentId}</p>
 
             <button
-              onClick={() => {
-                // Recuperamos los datos
-                const { cart: carritoMP, checkoutData: clienteMP, totalConEnvio } = paymentSuccess.pedido;
-                const { type, name, address, number, crossStreets } = clienteMP;
 
-                // Armamos el ticket para WhatsApp
-                let mensaje = `✅ *¡NUEVO PEDIDO PAGADO ONLINE!* ✅%0A%0A`;
-                mensaje += `*Orden:* ${paymentSuccess.orderNumber}%0A`;
-                mensaje += `*Comprobante:* ${paymentSuccess.paymentId}%0A`;
-                mensaje += `-----------------------------------%0A`;
-                
-                carritoMP.forEach(item => {
-                  mensaje += `• ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})%0A`;
-                  if (item.note && item.note.trim()) mensaje += `  _(${item.note.trim()})_%0A`;
-                });
 
-                mensaje += `-----------------------------------%0A`;
-                mensaje += `*TOTAL PAGADO:* $${totalConEnvio.toLocaleString('es-AR')}%0A%0A`;
+////////// Aquí es donde ocurre la magia del mensaje de WhatsApp
+onClick={() => {
+  const { cart: carritoMP, checkoutData: clienteMP, totalConEnvio } = paymentSuccess.pedido;
+  const { type, name, address, number, crossStreets } = clienteMP;
 
-                if (type === 'delivery') {
-                  mensaje += `🛵 *DELIVERY*%0A👤 *Nombre:* ${name}%0A📍 *Dirección:* ${address} ${number}%0A`;
-                  if (crossStreets) mensaje += `🛣 *Entre calles:* ${crossStreets}%0A`;
-                } else {
-                  mensaje += `🏪 *RETIRO EN EL LOCAL*%0A👤 *Nombre:* ${name}%0A`;
-                }
+  // Armamos el mensaje con un tono más amigable
+  let mensaje = `🍔 *¡Hola Contreburger!* 👋%0A%0A`;
+  mensaje += `Acabo de realizar un pedido y ya realicé el pago online. ✅%0A%0A`;
+  mensaje += `📍 *Orden:* ${paymentSuccess.orderNumber}%0A`;
+  mensaje += `💳 *Comprobante MP:* ${paymentSuccess.paymentId}%0A`;
+  mensaje += `-----------------------------------%0A`;
+  
+  carritoMP.forEach(item => {
+    mensaje += `• ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})%0A`;
+    if (item.note && item.note.trim()) mensaje += `   _(${item.note.trim()})_%0A`;
+  });
 
-                // Número de WhatsApp (¡Recuerda cambiarlo!)
-                const numeroLocal = "5491136013353"; 
-                window.open(`https://wa.me/${numeroLocal}?text=${mensaje}`, '_blank');
-                
-                // Cerramos el cartel
-                setPaymentSuccess(null);
-              }}
+  mensaje += `-----------------------------------%0A`;
+  mensaje += `💰 *TOTAL PAGADO:* $${totalConEnvio.toLocaleString('es-AR')}%0A%0A`;
+
+  if (type === 'delivery') {
+    mensaje += `🛵 *MODO:* Envío a domicilio%0A`;
+    mensaje += `👤 *Nombre:* ${name}%0A`;
+    mensaje += `🏠 *Dirección:* ${address} ${number}%0A`;
+    if (crossStreets) mensaje += `🛣 *Entre calles:* ${crossStreets}%0A`;
+  } else {
+    mensaje += `🏪 *MODO:* Retiro en el local%0A`;
+    mensaje += `👤 *Nombre:* ${name}%0A`;
+  }
+
+  mensaje += `%0A🙏 *¡Muchas gracias!*`;
+
+  // Usamos WHATSAPP_NUMBER que ya definiste arriba
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${mensaje}`, '_blank');
+  
+  // Cerramos el cartel
+  setPaymentSuccess(null);
+}}
+             
+
               style={{ backgroundColor: '#25D366', color: 'white', padding: '15px 20px', border: 'none', borderRadius: '8px', fontSize: '16px', cursor: 'pointer', fontWeight: 'bold', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
             >
                📲 Enviar pedido al Local
@@ -819,7 +836,7 @@ function StorePage({ setView }) {
   );
 }
 
-// --- COMPONENTE RAÍZ ---
+// ====== 🚀 INICIO DEL COMPONENTE RAÍZ (APP) 🚀 ======
 export default function App() {
   const [view, setView] = useState('home'); 
   const [user, setUser] = useState(null);
@@ -842,32 +859,6 @@ export default function App() {
       {view === 'home' && <StorePage setView={setView} />}
       {view === 'login' && <LoginPage onLoginSuccess={() => setView('admin')} />}
       {view === 'admin' && <AdminPage setView={setView} />}
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </>
   );
 }
