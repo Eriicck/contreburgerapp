@@ -182,6 +182,80 @@ function StorePage({ setView }) {
     type: 'delivery', paymentMethod: '', cashAmount: '', name: '', address: '', number: '', crossStreets: ''
   });
 
+
+/// 👇 AGREGA ESTA LÍNEA 👇
+  const [paymentSuccess, setPaymentSuccess] = useState(null);
+
+// 👇 👇 👇 NUEVO CÓDIGO: EL RECIBIDOR DE MERCADOPAGO 👇 👇 👇
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const paymentId = urlParams.get('payment_id');
+
+    if (status === 'approved' && paymentId) {
+      // Buscamos en la memoria del navegador el pedido que guardamos antes de ir a pagar
+      const pedidoGuardado = JSON.parse(localStorage.getItem('ultimo_pedido_mp'));
+
+
+    
+      if (pedidoGuardado) {
+
+        const orderNumber = `ORD-${paymentId.slice(-6).toUpperCase()}`;
+
+
+        const { cart: carritoMP, checkoutData: clienteMP, totalConEnvio } = pedidoGuardado;
+        const { type, name, address, number, crossStreets } = clienteMP;
+
+        // Armamos el ticket para la distribuidora
+        let mensaje = `✅ *¡NUEVO PEDIDO PAGADO CON MERCADOPAGO!* ✅\n\n`;
+        mensaje += `*ID de Transacción:* ${paymentId}\n`;
+        mensaje += `-----------------------------------\n`;
+        
+        carritoMP.forEach(item => {
+          mensaje += `• ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})\n`;
+          if (item.note && item.note.trim()) mensaje += `  _(${item.note.trim()})_\n`;
+        });
+
+        mensaje += `-----------------------------------\n`;
+        mensaje += `*TOTAL PAGADO:* $${totalConEnvio.toLocaleString('es-AR')}\n\n`;
+
+        if (type === 'delivery') {
+          mensaje += `🛵 *DELIVERY*\n👤 *Nombre:* ${name}\n📍 *Dirección:* ${address} ${number}\n`;
+          if (crossStreets) mensaje += `🛣 *Entre calles:* ${crossStreets}\n`;
+        } else {
+          mensaje += `🏪 *RETIRO EN EL LOCAL*\n👤 *Nombre:* ${name}\n`;
+        }
+
+
+        ///REVISAR SI ESTA BIEN UBICADO 
+        setPaymentSuccess({
+          paymentId: paymentId,
+          orderNumber: orderNumber,
+          pedido: pedidoGuardado
+        });
+
+
+
+
+        // Vaciamos la memoria y limpiamos la URL para que no se reenvíe si refrescan la página
+        localStorage.removeItem('ultimo_pedido_mp');
+        window.history.replaceState({}, document.title, window.location.pathname);
+        
+        // Vaciamos el carrito de la página
+        setCart([]);
+
+        // Abrimos WhatsApp automáticamente (¡ACUÉRDATE DE CAMBIAR ESTE NÚMERO!)
+        const numeroLocal = "5491136013353"; 
+        window.open(`https://wa.me/${numeroLocal}?text=${encodeURIComponent(mensaje)}`, '_blank');
+      }
+    }
+  }, []);
+  // 👆 👆 👆 FIN DEL NUEVO CÓDIGO 👆 👆 👆
+
+
+
+
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -251,6 +325,11 @@ function StorePage({ setView }) {
   const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
+
+
+
+
+
   // LÓGICA DE CHECKOUT ACTUALIZADA PARA MERCADOPAGO
   const handleCheckout = async () => {
     const { type, paymentMethod, cashAmount, name, address, number, crossStreets } = checkoutData;
@@ -302,6 +381,13 @@ function StorePage({ setView }) {
       setIsProcessingPayment(true); // Mostrar que está cargando
       
       try {
+
+          
+          // 👇 ESTO ES LO NUEVO: Guardamos el pedido completo en la mochila antes de irnos 👇
+        const pedidoCompleto = { cart, checkoutData, totalConEnvio };
+        localStorage.setItem('ultimo_pedido_mp', JSON.stringify(pedidoCompleto));
+        // 👆 ------------------------------------------------------------------------- 👆
+
           // Ya no necesitas 'getFunctions' aquí, usa la 'functions' que importaste arriba
           const createPreference = httpsCallable(functions, 'createPreference');
         
@@ -671,6 +757,63 @@ function StorePage({ setView }) {
             </div>
           </div>
         )}
+
+
+{/* 👇 CARTEL VISUAL DE PAGO EXITOSO 👇 */}
+      {paymentSuccess && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '15px', textAlign: 'center', maxWidth: '400px', width: '90%', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            <div style={{ fontSize: '50px', marginBottom: '10px' }}>✅</div>
+            <h2 style={{ color: '#4CAF50', marginBottom: '5px', fontSize: '24px' }}>¡Pago Exitoso!</h2>
+            <p style={{ color: '#333', fontSize: '16px', marginBottom: '10px' }}>Tu orden <strong>{paymentSuccess.orderNumber}</strong> está confirmada.</p>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '25px' }}>Comprobante MP: {paymentSuccess.paymentId}</p>
+
+            <button
+              onClick={() => {
+                // Recuperamos los datos
+                const { cart: carritoMP, checkoutData: clienteMP, totalConEnvio } = paymentSuccess.pedido;
+                const { type, name, address, number, crossStreets } = clienteMP;
+
+                // Armamos el ticket para WhatsApp
+                let mensaje = `✅ *¡NUEVO PEDIDO PAGADO ONLINE!* ✅%0A%0A`;
+                mensaje += `*Orden:* ${paymentSuccess.orderNumber}%0A`;
+                mensaje += `*Comprobante:* ${paymentSuccess.paymentId}%0A`;
+                mensaje += `-----------------------------------%0A`;
+                
+                carritoMP.forEach(item => {
+                  mensaje += `• ${item.quantity}x ${item.name} ($${(item.price * item.quantity).toLocaleString('es-AR')})%0A`;
+                  if (item.note && item.note.trim()) mensaje += `  _(${item.note.trim()})_%0A`;
+                });
+
+                mensaje += `-----------------------------------%0A`;
+                mensaje += `*TOTAL PAGADO:* $${totalConEnvio.toLocaleString('es-AR')}%0A%0A`;
+
+                if (type === 'delivery') {
+                  mensaje += `🛵 *DELIVERY*%0A👤 *Nombre:* ${name}%0A📍 *Dirección:* ${address} ${number}%0A`;
+                  if (crossStreets) mensaje += `🛣 *Entre calles:* ${crossStreets}%0A`;
+                } else {
+                  mensaje += `🏪 *RETIRO EN EL LOCAL*%0A👤 *Nombre:* ${name}%0A`;
+                }
+
+                // Número de WhatsApp (¡Recuerda cambiarlo!)
+                const numeroLocal = "5491136013353"; 
+                window.open(`https://wa.me/${numeroLocal}?text=${mensaje}`, '_blank');
+                
+                // Cerramos el cartel
+                setPaymentSuccess(null);
+              }}
+              style={{ backgroundColor: '#25D366', color: 'white', padding: '15px 20px', border: 'none', borderRadius: '8px', fontSize: '16px', cursor: 'pointer', fontWeight: 'bold', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}
+            >
+               📲 Enviar pedido al Local
+            </button>
+          </div>
+        </div>
+      )}
+      {/* 👆 FIN DEL CARTEL DE ÉXITO 👆 */}
+
+
+
+
       </div>
     </>
   );
@@ -699,6 +842,32 @@ export default function App() {
       {view === 'home' && <StorePage setView={setView} />}
       {view === 'login' && <LoginPage onLoginSuccess={() => setView('admin')} />}
       {view === 'admin' && <AdminPage setView={setView} />}
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </>
   );
 }
