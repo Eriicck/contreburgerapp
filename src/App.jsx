@@ -23,7 +23,7 @@ const storage = getStorage(app);
 const functions = getFunctions(app);
 
 // --- 2. CONSTANTES Y UTILIDADES ---
-const WHATSAPP_NUMBER = "5491124952866";
+const WHATSAPP_NUMBER = "5491176612886";
 
 const HEADER_IMAGES = [
   "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965&auto=format&fit=crop", 
